@@ -2,8 +2,11 @@ import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
   const imageUrl = product.images?.length
-    ? `http://localhost:5000${product.images[0]}`
-    : "https://via.placeholder.com/400x300?text=No+Image";
+  ? product.images[0].startsWith("http")
+    ? product.images[0]
+    : `${import.meta.env.VITE_API_URL}${product.images[0]}`
+  : "https://via.placeholder.com/400x300?text=No+Image";
+
 
   return (
     <div
