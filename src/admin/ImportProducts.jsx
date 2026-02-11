@@ -12,7 +12,7 @@ export default function ImportProducts() {
 
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/admin/import-products`,
+        `${import.meta.env.VITE_API_URL}/admin/import-products`,
         formData,
         {
           headers: {
