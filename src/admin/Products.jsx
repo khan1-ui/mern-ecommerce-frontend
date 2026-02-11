@@ -58,6 +58,13 @@ const Products = () => {
         >
           + Add Product
         </Link>
+        <Link
+          to="/admin/import"
+          className="px-4 py-2 rounded text-white"
+          style={{ backgroundColor: "var(--store-color)" }}
+        >
+          Import JSON
+        </Link>
       </div>
 
       {/* EMPTY STATE */}

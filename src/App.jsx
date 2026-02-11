@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StorePage from "./pages/StorePage";
+import StoreSettings from "./admin/StoreSettings";
 
 
 // User Dashboard
@@ -49,7 +50,12 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/store/:slug" element={<StorePage />} />
-
+          <Route path="/admin/store-settings" 
+          element={ <ProtectedRoute adminOnly>
+                  <StoreSettings />
+              </ProtectedRoute>
+                }
+              />
 
           {/* ================= USER ROUTES ================= */}
           <Route element={<ProtectedRoute />}>
