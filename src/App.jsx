@@ -12,6 +12,8 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import StorePage from "./pages/StorePage";
+
 
 // User Dashboard
 import DashboardHome from "./dashboard/DashboardHome";
@@ -46,6 +48,8 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/store/:slug" element={<StorePage />} />
+
 
           {/* ================= USER ROUTES ================= */}
           <Route element={<ProtectedRoute />}>

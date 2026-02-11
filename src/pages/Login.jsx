@@ -22,16 +22,20 @@ const Login = () => {
 
     try {
       setLoading(true);
+
       const user = await login(email, password);
 
       showToast("Login successful 🎉", "success");
 
-      // 🔁 role-based redirect
-      if (user?.role === "admin") {
+      // 🔥 SaaS Store-based redirect
+      if (user?.store) {
+        navigate(`/store/${user.store}`);
+      } else if (user?.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
+
     } catch (err) {
       showToast(
         err?.response?.data?.message || "Login failed",
@@ -52,7 +56,7 @@ const Login = () => {
       </h2>
 
       <input
-        className="border p-2 w-full mb-4 rounded"
+        className="border p-2 w-full mb-4 rounded dark:bg-gray-700"
         type="email"
         placeholder="Email"
         value={email}
@@ -61,7 +65,7 @@ const Login = () => {
       />
 
       <input
-        className="border p-2 w-full mb-4 rounded"
+        className="border p-2 w-full mb-4 rounded dark:bg-gray-700"
         type="password"
         placeholder="Password"
         value={password}
@@ -72,7 +76,7 @@ const Login = () => {
       <button
         type="submit"
         disabled={loading}
-        className={`w-full py-2 rounded text-white ${
+        className={`w-full py-2 rounded text-white transition ${
           loading
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-black hover:bg-gray-800"
