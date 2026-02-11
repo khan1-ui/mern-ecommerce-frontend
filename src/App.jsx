@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
+import ImportProducts from "./pages/admin/ImportProducts";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
@@ -60,6 +61,8 @@ function App() {
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/products/new" element={<AddProduct />} />
             <Route path="/admin/products/:id/edit"element={<EditProduct/>}/>
+            <Route path="/admin/import" element={<ImportProducts />} />
+
 
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/users" element={<Users />} />
