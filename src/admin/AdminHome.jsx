@@ -35,8 +35,8 @@ const AdminHome = () => {
       try {
         const [statsRes, revenueRes] =
           await Promise.all([
-            api.get("/admin/stats"),
-            api.get("/admin/revenue"),
+            api.get("/api/store-owner/stats"),
+            api.get("/api/store-owner/revenue"),
           ]);
 
         setStats(statsRes.data);
