@@ -25,6 +25,7 @@ import Profile from "./dashboard/Profile";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import SuperAdminUsers from "./pages/superadmin/SuperAdminUsers";
 import SuperAdminStores from "./pages/superadmin/SuperAdminStores";
+import SuperAdminProducts from "./pages/superadmin/SuperAdminProducts";
 import AdminHome from "./admin/AdminHome";
 import AdminProducts from "./admin/Products";
 import AddProduct from "./admin/AddProduct";
@@ -81,6 +82,7 @@ function App() {
             <Route path="/superadmin" element={<SuperAdminDashboard />} />
             <Route path="/superadmin/users" element={<SuperAdminUsers />} />
             <Route path="/superadmin/stores" element={<SuperAdminStores />} />
+            <Route path="/superadmin/products" element={<SuperAdminProducts />}/>
           </Route>
 
           {/* ================= FALLBACK ================= */}
