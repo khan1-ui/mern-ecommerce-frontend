@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../services/api";
 
 const ProductCard = ({ product }) => {
-  const imageUrl = product.images?.length
-  ? product.images[0].startsWith("http")
-    ? product.images[0]
-    : `${import.meta.env.VITE_API_URL}${product.images[0]}`
-  : "https://via.placeholder.com/400x300?text=No+Image";
-
+  const imageUrl =
+    product.images?.length > 0
+      ? product.images[0].startsWith("http")
+        ? product.images[0]
+        : getImageUrl(product.images[0])
+      : "https://via.placeholder.com/400x300?text=No+Image";
 
   return (
     <div
@@ -21,11 +22,11 @@ const ProductCard = ({ product }) => {
       {/* IMAGE */}
       <div className="h-44 bg-gray-100 dark:bg-gray-700">
         <Link to={`/product/${product.slug}`}>
-        <img
-          src={imageUrl}
-          alt={product.title}
-          className="w-full h-full object-cover"
-        />
+          <img
+            src={imageUrl}
+            alt={product.title}
+            className="w-full h-full object-cover"
+          />
         </Link>
       </div>
 

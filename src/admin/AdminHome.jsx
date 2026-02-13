@@ -4,68 +4,78 @@ import api from "../services/api";
 import Loader from "../components/Loader";
 import AdminCharts from "./AdminCharts";
 import RevenueChart from "./RevenueChart";
-import {cardStyle}  from "../styles";
-
-
+import { useAuth } from "../context/AuthContext";
+import { cardStyle } from "../styles";
 
 const StatCard = ({ title, value }) => (
-  <div className="border rounded p-4 text-center">
+  <div className="border rounded p-4 text-center bg-white dark:bg-gray-800 shadow-sm">
     <p className="text-gray-500 text-sm">{title}</p>
     <p className="text-2xl font-bold">{value}</p>
   </div>
 );
 
 const ActionCard = ({ to, title, desc }) => (
-  <Link
-    to={to}
-    className={cardStyle}
-  >
+  <Link to={to} className={cardStyle}>
     <h2 className="text-lg font-semibold">{title}</h2>
-    <p className="text-sm text-gray-600">{desc}</p>
+    <p className="text-sm text-gray-600 dark:text-gray-300">
+      {desc}
+    </p>
   </Link>
 );
 
 const AdminHome = () => {
+  const { user } = useAuth();
+
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);
-
-  const fetchRevenue = async () => {
-  const { data } = await api.get("/admin/revenue");
-  setRevenueData(data);
-};
-  useEffect(() => {
-  fetchStats();
-  fetchRevenue();
-}, []);
-
-
-  const fetchStats = async () => {
-    try {
-      const { data } = await api.get("/admin/stats");
-      setStats(data);
-    } catch (err) {
-      console.error("Failed to load admin stats");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
+    const fetchDashboardData = async () => {
+      try {
+        const [statsRes, revenueRes] =
+          await Promise.all([
+            api.get("/admin/stats"),
+            api.get("/admin/revenue"),
+          ]);
+
+        setStats(statsRes.data);
+        setRevenueData(revenueRes.data);
+      } catch (err) {
+        console.error("Dashboard load failed");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   if (loading) return <Loader />;
 
+  if (!stats) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        Failed to load dashboard data.
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 max-w-6xl mx-auto ">
-      <h1 className="text-2xl font-bold mb-6">
-        Admin Dashboard
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">
+        {user?.role === "storeOwner"
+          ? "Store Dashboard"
+          : "Admin Dashboard"}
       </h1>
 
+      <p className="text-gray-500 mb-6 dark:text-gray-300">
+        Overview of your store performance
+      </p>
+
       {/* ================= STATS ================= */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 ">
-        <StatCard  
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard
           title="Total Users"
           value={stats.usersCount}
         />
@@ -78,14 +88,14 @@ const AdminHome = () => {
           value={stats.orders.total}
         />
         <StatCard
-          title="Total Revenue"
+          title="Revenue"
           value={`৳ ${stats.revenue}`}
         />
       </div>
 
       {/* ================= BREAKDOWN ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="border rounded p-4">
+        <div className="border rounded p-4 bg-white dark:bg-gray-800">
           <h2 className="font-semibold mb-2">
             Products Breakdown
           </h2>
@@ -93,7 +103,7 @@ const AdminHome = () => {
           <p>Physical: {stats.products.physical}</p>
         </div>
 
-        <div className="border rounded p-4">
+        <div className="border rounded p-4 bg-white dark:bg-gray-800">
           <h2 className="font-semibold mb-2">
             Orders Status
           </h2>
@@ -108,7 +118,7 @@ const AdminHome = () => {
         Quick Actions
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         <ActionCard
           to="/admin/products"
           title="Manage Products"
@@ -122,19 +132,19 @@ const AdminHome = () => {
         />
 
         <ActionCard
-          to="/admin/users"
-          title="Manage Users"
-          desc="View registered users"
+          to="/admin/store-settings"
+          title="Store Settings"
+          desc="Customize logo, banner & theme"
         />
       </div>
+
       {/* ================= CHARTS ================= */}
-        <AdminCharts stats={stats} />
-      {/* ================= REVENUE LINE CHART ================= */}
-        {revenueData.length > 0 && (
-         <RevenueChart data={revenueData} />
-        )}
+      <AdminCharts stats={stats} />
 
-
+      {/* ================= REVENUE CHART ================= */}
+      {revenueData.length > 0 && (
+        <RevenueChart data={revenueData} />
+      )}
     </div>
   );
 };

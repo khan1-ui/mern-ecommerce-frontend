@@ -9,7 +9,6 @@ const InvoicePreview = ({ order, onClose }) => {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-900 w-full max-w-lg p-6 rounded space-y-4 relative">
 
-        {/* CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-sm"
@@ -17,7 +16,6 @@ const InvoicePreview = ({ order, onClose }) => {
           ✕
         </button>
 
-        {/* HEADER */}
         <div className="text-center">
           <h2 className="text-xl font-bold">INVOICE</h2>
           <p className="text-sm text-gray-500">
@@ -30,7 +28,6 @@ const InvoicePreview = ({ order, onClose }) => {
 
         <hr />
 
-        {/* CUSTOMER */}
         {order.shippingAddress && (
           <>
             <div>
@@ -38,50 +35,51 @@ const InvoicePreview = ({ order, onClose }) => {
               <p>{order.shippingAddress.name}</p>
               <p>{order.shippingAddress.phone}</p>
               <p>{order.shippingAddress.address}</p>
+              <p>{order.shippingAddress.city}</p>
             </div>
             <hr />
           </>
         )}
 
-        {/* ITEMS */}
         <div>
-          <p className="font-medium mb-1">Items</p>
+          <p className="font-medium mb-2">Items</p>
           {order.items.map((item, i) => (
             <div
               key={i}
               className="flex justify-between text-sm"
             >
               <span>
-                {item.product?.title} × {item.qty}
+                {item.product?.title} × {item.quantity}
               </span>
-              <span>৳ {item.price}</span>
+              <span>
+                ৳ {item.price * item.quantity}
+              </span>
             </div>
           ))}
         </div>
 
         <hr />
 
-        {/* TOTAL */}
         <div className="flex justify-between font-semibold">
           <span>Total</span>
           <span>৳ {order.totalAmount}</span>
         </div>
 
-        {/* PAYMENT */}
         <div className="text-sm">
-          <p>Payment Method: Cash on Delivery</p>
+          <p>Payment Method: COD</p>
           <p>
             Payment Status:{" "}
-            <span className="font-medium capitalize">
-              {order.paymentStatus || "unpaid"}
+            <span className="capitalize font-medium">
+              {order.paymentStatus}
             </span>
           </p>
         </div>
 
-        {/* ACTION */}
+        {/* ✅ Correct Invoice Route */}
         <a
-          href={`${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice`}
+          href={`${import.meta.env.VITE_API_URL}/invoice/orders/${order._id}/invoice`}
           target="_blank"
+          rel="noopener noreferrer"
           className="block text-center bg-black text-white py-2 rounded"
         >
           Download PDF Invoice
@@ -126,7 +124,7 @@ const Orders = () => {
       </h1>
 
       {orders.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-100">
+        <p className="text-gray-500 dark:text-gray-300">
           You have not placed any orders yet.
         </p>
       ) : (
@@ -134,7 +132,7 @@ const Orders = () => {
           {orders.map((order) => (
             <div
               key={order._id}
-              className="border p-4 rounded"
+              className="border p-4 rounded-lg bg-white dark:bg-gray-800"
             >
               {/* HEADER */}
               <div className="flex justify-between mb-3 text-sm">
@@ -146,7 +144,7 @@ const Orders = () => {
                 </span>
 
                 <span className="capitalize font-semibold">
-                  Status: {order.orderStatus}
+                  {order.orderStatus}
                 </span>
               </div>
 
@@ -161,16 +159,16 @@ const Orders = () => {
                       <p className="font-medium">
                         {item.product?.title}
                       </p>
-                      <p className="text-gray-500 dark:text-gray-100">
-                        {item.type === "digital"
+                      <p className="text-gray-500 dark:text-gray-300">
+                        {item.product?.type === "digital"
                           ? "Digital Product"
                           : "Physical Product"}{" "}
-                        × {item.qty}
+                        × {item.quantity}
                       </p>
                     </div>
 
-                    {/* DIGITAL DOWNLOAD */}
-                    {item.type === "digital" &&
+                    {/* ✅ DIGITAL DOWNLOAD SAFE */}
+                    {item.product?.type === "digital" &&
                       order.paymentStatus ===
                         "paid" && (
                         <a
@@ -201,7 +199,7 @@ const Orders = () => {
                     onClick={() =>
                       setSelectedOrder(order)
                     }
-                    className="underline cursor-pointer"
+                    className="underline"
                   >
                     View Invoice
                   </button>

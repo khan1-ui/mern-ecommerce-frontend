@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api, { getImageUrl } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import Loader from "../components/Loader";
 
 export default function StoreSettings() {
+  const { user } = useAuth();
   const { showToast } = useToast();
+
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: "",
@@ -13,23 +18,33 @@ export default function StoreSettings() {
     themeColor: "#000000",
   });
 
+  /* ================= FETCH STORE ================= */
   useEffect(() => {
     const fetchStore = async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/store/${localStorage.getItem("store")}`
-      );
+      try {
+        const { data } = await api.get(
+          `/store/${user.store}`
+        );
 
-      setForm({
-        name: data.store.name,
-        description: data.store.description || "",
-        logo: data.store.logo || "",
-        banner: data.store.banner || "",
-        themeColor: data.store.themeColor || "#000000",
-      });
+        setForm({
+          name: data.store.name,
+          description: data.store.description || "",
+          logo: data.store.logo || "",
+          banner: data.store.banner || "",
+          themeColor:
+            data.store.themeColor || "#000000",
+        });
+      } catch (err) {
+        showToast("Failed to load store", "error");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchStore();
-  }, []);
+    if (user?.store) {
+      fetchStore();
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setForm({
@@ -38,76 +53,102 @@ export default function StoreSettings() {
     });
   };
 
+  /* ================= SUBMIT ================= */
   const submitHandler = async (e) => {
     e.preventDefault();
 
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/store/settings`,
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await api.put("/store/settings", form);
 
-      showToast("Store updated successfully ✅", "success");
+      showToast(
+        "Store updated successfully ✅",
+        "success"
+      );
     } catch (err) {
       showToast("Update failed ❌", "error");
     }
   };
 
+  if (loading) return <Loader />;
+
   return (
-    <form onSubmit={submitHandler} className="p-6 max-w-lg mx-auto space-y-4">
-      <h2 className="text-xl font-bold">Store Settings</h2>
+    <div className="p-6 max-w-lg mx-auto">
+      <h2 className="text-xl font-bold mb-4">
+        Store Settings
+      </h2>
 
-      <input
-        type="text"
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        placeholder="Store Name"
-      />
+      <form
+        onSubmit={submitHandler}
+        className="space-y-4"
+      >
+        <input
+          type="text"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          className="border p-2 w-full rounded"
+          placeholder="Store Name"
+          required
+        />
 
-      <textarea
-        name="description"
-        value={form.description}
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        placeholder="Store Description"
-      />
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          className="border p-2 w-full rounded"
+          placeholder="Store Description"
+          rows="3"
+        />
 
-      <input
-        type="text"
-        name="logo"
-        value={form.logo}
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        placeholder="Logo URL"
-      />
+        <input
+          type="text"
+          name="logo"
+          value={form.logo}
+          onChange={handleChange}
+          className="border p-2 w-full rounded"
+          placeholder="Logo URL"
+        />
 
-      <input
-        type="text"
-        name="banner"
-        value={form.banner}
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        placeholder="Banner URL"
-      />
+        {form.logo && (
+          <img
+            src={getImageUrl(form.logo)}
+            className="h-16 mt-2 rounded"
+          />
+        )}
 
-      <input
-        type="color"
-        name="themeColor"
-        value={form.themeColor}
-        onChange={handleChange}
-        className="w-full h-10"
-      />
+        <input
+          type="text"
+          name="banner"
+          value={form.banner}
+          onChange={handleChange}
+          className="border p-2 w-full rounded"
+          placeholder="Banner URL"
+        />
 
-      <button className="bg-black text-white px-4 py-2 rounded">
-        Save Changes
-      </button>
-    </form>
+        {form.banner && (
+          <img
+            src={getImageUrl(form.banner)}
+            className="h-24 mt-2 rounded w-full object-cover"
+          />
+        )}
+
+        <div>
+          <label className="text-sm font-medium">
+            Theme Color
+          </label>
+          <input
+            type="color"
+            name="themeColor"
+            value={form.themeColor}
+            onChange={handleChange}
+            className="w-full h-10 mt-1"
+          />
+        </div>
+
+        <button className="bg-black text-white px-4 py-2 rounded w-full">
+          Save Changes
+        </button>
+      </form>
+    </div>
   );
 }

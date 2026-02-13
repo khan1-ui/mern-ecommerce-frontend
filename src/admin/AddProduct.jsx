@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
@@ -21,7 +21,15 @@ const AddProduct = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [digitalFile, setDigitalFile] = useState(null);
 
-  // ================= IMAGE HANDLERS =================
+  // 🔥 Cleanup preview URLs
+  useEffect(() => {
+    return () => {
+      previewImages.forEach((url) =>
+        URL.revokeObjectURL(url)
+      );
+    };
+  }, [previewImages]);
+
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
     setImages(files);
@@ -41,9 +49,19 @@ const AddProduct = () => {
     );
   };
 
-  // ================= SUBMIT =================
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    if (!form.title || !form.price) {
+      showToast("Title and price required", "error");
+      return;
+    }
+
+    if (form.type === "digital" && !digitalFile) {
+      showToast("Digital file required", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,29 +69,31 @@ const AddProduct = () => {
 
       formData.append("title", form.title);
       formData.append("description", form.description);
-      formData.append("price", form.price);
+      formData.append("price", Number(form.price));
       formData.append("type", form.type);
 
       if (form.type === "physical") {
-        formData.append("stock", form.stock);
-      }
+        formData.append("stock", Number(form.stock));
+        images.forEach((img) =>
+          formData.append("images", img)
+        );
 
-      images.forEach((img) => {
-        formData.append("images", img);
-      });
-
-      if (form.type === "digital" && digitalFile) {
+        await api.post(
+          "/store-owner/products",
+          formData
+        );
+      } else {
         formData.append("file", digitalFile);
-      }
 
-      await api.post("/admin/products", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+        await api.post(
+          "/store-owner/products/digital",
+          formData
+        );
+      }
 
       showToast("Product added successfully", "success");
       navigate("/admin/products");
+
     } catch (error) {
       showToast(
         error?.response?.data?.message ||
@@ -91,27 +111,20 @@ const AddProduct = () => {
         Add New Product
       </h2>
 
-      <form
-        onSubmit={submitHandler}
-        className="space-y-3"
-      >
-        {/* TITLE */}
+      <form onSubmit={submitHandler} className="space-y-4">
+
         <input
-          className="border p-2 w-full"
+          className="border p-2 w-full rounded"
           placeholder="Product Title"
-          required
           value={form.title}
           onChange={(e) =>
-            setForm({
-              ...form,
-              title: e.target.value,
-            })
+            setForm({ ...form, title: e.target.value })
           }
+          required
         />
 
-        {/* DESCRIPTION */}
         <textarea
-          className="border p-2 w-full"
+          className="border p-2 w-full rounded"
           placeholder="Description"
           rows="3"
           value={form.description}
@@ -123,124 +136,91 @@ const AddProduct = () => {
           }
         />
 
-        {/* PRICE */}
         <input
           type="number"
-          className="border p-2 w-full"
+          className="border p-2 w-full rounded"
           placeholder="Price"
-          required
           value={form.price}
           onChange={(e) =>
-            setForm({
-              ...form,
-              price: e.target.value,
-            })
+            setForm({ ...form, price: e.target.value })
           }
+          required
         />
 
-        {/* TYPE */}
         <select
-          className="border p-2 w-full"
+          className="border p-2 w-full rounded"
           value={form.type}
           onChange={(e) =>
-            setForm({
-              ...form,
-              type: e.target.value,
-            })
+            setForm({ ...form, type: e.target.value })
           }
         >
-          <option value="digital">
-            Digital Product
-          </option>
-          <option value="physical">
-            Physical Product
-          </option>
+          <option value="digital">Digital</option>
+          <option value="physical">Physical</option>
         </select>
 
-        {/* STOCK */}
         {form.type === "physical" && (
-          <input
-            type="number"
-            className="border p-2 w-full"
-            placeholder="Stock Quantity"
-            required
-            value={form.stock}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                stock: e.target.value,
-              })
-            }
-          />
-        )}
-
-        {/* ================= IMAGE UPLOAD ================= */}
-        <div>
-          <label className="text-sm font-medium">
-            Product Images
-          </label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            className="block mt-1"
-            onChange={handleImages}
-          />
-        </div>
-
-        {/* IMAGE PREVIEW GRID */}
-        {previewImages.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
-            {previewImages.map((img, index) => (
-              <div
-                key={index}
-                className="relative border rounded overflow-hidden"
-              >
-                <img
-                  src={img}
-                  alt="preview"
-                  className="w-full h-24 object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeImage(index)
-                  }
-                  className="absolute top-1 right-1 bg-black text-white text-xs px-2 rounded"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ================= DIGITAL FILE ================= */}
-        {form.type === "digital" && (
-          <div>
-            <label className="text-sm font-medium">
-              Digital File
-            </label>
+          <>
             <input
-              type="file"
-              accept=".pdf,.zip,.rar"
-              className="block mt-1"
+              type="number"
+              className="border p-2 w-full rounded"
+              placeholder="Stock Quantity"
+              value={form.stock}
               onChange={(e) =>
-                setDigitalFile(e.target.files[0])
+                setForm({
+                  ...form,
+                  stock: e.target.value,
+                })
               }
               required
             />
-          </div>
+
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImages}
+            />
+
+            {previewImages.length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                {previewImages.map((img, i) => (
+                  <div key={i} className="relative">
+                    <img
+                      src={img}
+                      className="h-24 w-full object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeImage(i)
+                      }
+                      className="absolute top-1 right-1 bg-black text-white text-xs px-2 rounded"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
-        {/* SUBMIT */}
+        {form.type === "digital" && (
+          <input
+            type="file"
+            accept=".pdf,.zip,.rar"
+            onChange={(e) =>
+              setDigitalFile(e.target.files[0])
+            }
+            required
+          />
+        )}
+
         <button
           disabled={loading}
-          className="bg-black text-white px-4 py-2 w-full"
+          className="bg-black text-white w-full py-2 rounded"
         >
-          {loading
-            ? "Saving..."
-            : "Save Product"}
+          {loading ? "Saving..." : "Save Product"}
         </button>
       </form>
     </div>

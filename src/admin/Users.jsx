@@ -6,6 +6,8 @@ import { useToast } from "../context/ToastContext";
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
   const { showToast } = useToast();
 
   const fetchUsers = async () => {
@@ -23,6 +25,23 @@ const Users = () => {
     fetchUsers();
   }, []);
 
+  const filteredUsers = users.filter((u) =>
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const getRoleBadge = (role) => {
+    switch (role) {
+      case "superadmin":
+        return "bg-purple-100 text-purple-700";
+      case "storeOwner":
+        return "bg-blue-100 text-blue-700";
+      case "admin":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-green-100 text-green-700";
+    }
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -31,57 +50,53 @@ const Users = () => {
         Manage Users
       </h2>
 
-      {users.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-100">
+      {/* SEARCH */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border p-2 w-full md:w-1/3 rounded"
+        />
+      </div>
+
+      {filteredUsers.length === 0 ? (
+        <p className="text-gray-500 dark:text-gray-300">
           No users found.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto rounded border">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
-                <th className="border p-2 text-left">
-                  Name
-                </th>
-                <th className="border p-2 text-left">
-                  Email
-                </th>
-                <th className="border p-2 text-left">
-                  Role
-                </th>
-                <th className="border p-2 text-left">
-                  Joined
-                </th>
+                <th className="p-3 text-left">Name</th>
+                <th className="p-3 text-left">Email</th>
+                <th className="p-3 text-left">Role</th>
+                <th className="p-3 text-left">Joined</th>
               </tr>
             </thead>
 
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr
                   key={user._id}
-                  className="hover:bg-gray-50"
+                  className="border-t hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  <td className="border p-2">
-                    {user.name}
-                  </td>
+                  <td className="p-3">{user.name}</td>
+                  <td className="p-3">{user.email}</td>
 
-                  <td className="border p-2">
-                    {user.email}
-                  </td>
-
-                  <td className="border p-2">
+                  <td className="p-3">
                     <span
-                      className={`px-2 py-0.5 rounded text-xs ${
-                        user.role === "admin"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
+                      className={`px-2 py-1 rounded text-xs ${getRoleBadge(
+                        user.role
+                      )}`}
                     >
                       {user.role}
                     </span>
                   </td>
 
-                  <td className="border p-2">
+                  <td className="p-3">
                     {new Date(
                       user.createdAt
                     ).toLocaleDateString()}

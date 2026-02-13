@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCenter,
+} from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import api from "../services/api";
+import api, { getImageUrl } from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 /* ================= SORTABLE IMAGE ================= */
 const SortableImage = ({ image, isMain, onRemove }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: image.id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: image.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -25,39 +24,24 @@ const SortableImage = ({ image, isMain, onRemove }) => {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="relative select-none"
-    >
-      {/* DRAG HANDLE */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab"
-      >
+    <div ref={setNodeRef} style={style} className="relative">
+      <div {...attributes} {...listeners}>
         <img
-          src={`http://localhost:5000${image.url}`}
-          alt=""
+          src={getImageUrl(image.url)}
           className={`w-full h-24 object-cover rounded ${
             isMain ? "ring-2 ring-black" : ""
           }`}
         />
       </div>
 
-      {/* REMOVE BUTTON */}
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(image);
-        }}
-        className="absolute top-1 right-1 bg-black text-white text-xs px-2 rounded hover:bg-red-600"
+        onClick={() => onRemove(image)}
+        className="absolute top-1 right-1 bg-black text-white text-xs px-2 rounded"
       >
         ✕
       </button>
 
-      {/* MAIN BADGE */}
       {isMain && (
         <span className="absolute bottom-1 left-1 bg-black text-white text-[10px] px-1 rounded">
           MAIN
@@ -71,6 +55,7 @@ const SortableImage = ({ image, isMain, onRemove }) => {
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
 
@@ -84,7 +69,6 @@ const EditProduct = () => {
 
   const [existingImages, setExistingImages] = useState([]);
   const [removedImages, setRemovedImages] = useState([]);
-
   const [newImages, setNewImages] = useState([]);
   const [previewNewImages, setPreviewNewImages] = useState([]);
 
@@ -92,7 +76,9 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const { data } = await api.get(`/admin/products/${id}`);
+        const { data } = await api.get(
+          `/store-owner/products/${id}`
+        );
 
         setForm({
           title: data.title,
@@ -103,13 +89,13 @@ const EditProduct = () => {
         });
 
         setExistingImages(
-          (data.images || []).map((img, index) => ({
-            id: `existing-${index}-${Date.now()}`,
+          (data.images || []).map((img) => ({
+            id: img, // 🔥 stable id
             url: img,
           }))
         );
-      } catch (err) {
-        alert("Failed to load product");
+      } catch {
+        showToast("Failed to load product", "error");
         navigate("/admin/products");
       } finally {
         setLoading(false);
@@ -117,7 +103,16 @@ const EditProduct = () => {
     };
 
     fetchProduct();
-  }, [id, navigate]);
+  }, [id]);
+
+  /* ================= CLEANUP ================= */
+  useEffect(() => {
+    return () => {
+      previewNewImages.forEach((url) =>
+        URL.revokeObjectURL(url)
+      );
+    };
+  }, [previewNewImages]);
 
   /* ================= IMAGE HANDLERS ================= */
   const removeExistingImage = (imgObj) => {
@@ -158,7 +153,7 @@ const EditProduct = () => {
       const formData = new FormData();
 
       Object.entries(form).forEach(([k, v]) => {
-        if (v !== "") formData.append(k, v);
+        formData.append(k, v);
       });
 
       formData.append(
@@ -168,40 +163,40 @@ const EditProduct = () => {
 
       formData.append(
         "orderedImages",
-        JSON.stringify(existingImages.map((i) => i.url))
+        JSON.stringify(
+          existingImages.map((i) => i.url)
+        )
       );
 
       newImages.forEach((img) =>
         formData.append("images", img)
       );
 
-      await api.put(`/admin/products/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.put(
+        `/store-owner/products/${id}`,
+        formData
+      );
 
-      alert("Product updated");
+      showToast("Product updated", "success");
       navigate("/admin/products");
-    } catch (err) {
-      alert("Update failed");
+    } catch {
+      showToast("Update failed", "error");
     }
   };
 
-  if (loading) {
-    return <p className="p-6">Loading...</p>;
-  }
+  if (loading) return <p className="p-6">Loading...</p>;
 
   return (
     <form
       onSubmit={submitHandler}
-      className="p-6 max-w-lg mx-auto space-y-3"
+      className="p-6 max-w-lg mx-auto space-y-4"
     >
-      <h2 className="text-xl font-bold">Edit Product</h2>
+      <h2 className="text-xl font-bold">
+        Edit Product
+      </h2>
 
       <input
-        className="border p-2 w-full"
-        placeholder="Title"
+        className="border p-2 w-full rounded"
         value={form.title}
         onChange={(e) =>
           setForm({ ...form, title: e.target.value })
@@ -209,41 +204,30 @@ const EditProduct = () => {
       />
 
       <textarea
-        className="border p-2 w-full"
+        className="border p-2 w-full rounded"
         rows="3"
-        placeholder="Description"
         value={form.description}
         onChange={(e) =>
-          setForm({ ...form, description: e.target.value })
+          setForm({
+            ...form,
+            description: e.target.value,
+          })
         }
       />
 
       <input
         type="number"
-        className="border p-2 w-full"
-        placeholder="Price"
+        className="border p-2 w-full rounded"
         value={form.price}
         onChange={(e) =>
           setForm({ ...form, price: e.target.value })
         }
       />
 
-      <select
-        className="border p-2 w-full"
-        value={form.type}
-        onChange={(e) =>
-          setForm({ ...form, type: e.target.value })
-        }
-      >
-        <option value="digital">Digital</option>
-        <option value="physical">Physical</option>
-      </select>
-
       {form.type === "physical" && (
         <input
           type="number"
-          className="border p-2 w-full"
-          placeholder="Stock"
+          className="border p-2 w-full rounded"
           value={form.stock}
           onChange={(e) =>
             setForm({ ...form, stock: e.target.value })
@@ -251,37 +235,28 @@ const EditProduct = () => {
         />
       )}
 
-      {/* EXISTING IMAGES */}
       {existingImages.length > 0 && (
-        <div>
-          <p className="text-sm font-medium mb-1">
-            Existing Images
-            <span className="text-xs text-gray-500 ml-1">
-              (drag to reorder — first is main)
-            </span>
-          </p>
-
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={existingImages.map((i) => i.id)}
           >
-            <SortableContext items={existingImages.map((i) => i.id)}>
-              <div className="grid grid-cols-3 gap-3">
-                {existingImages.map((img, index) => (
-                  <SortableImage
-                    key={img.id}
-                    image={img}
-                    isMain={index === 0}
-                    onRemove={removeExistingImage}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
+            <div className="grid grid-cols-3 gap-3">
+              {existingImages.map((img, index) => (
+                <SortableImage
+                  key={img.id}
+                  image={img}
+                  isMain={index === 0}
+                  onRemove={removeExistingImage}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
-      {/* NEW IMAGES */}
       <input
         type="file"
         multiple
@@ -289,19 +264,7 @@ const EditProduct = () => {
         onChange={handleNewImages}
       />
 
-      {previewNewImages.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          {previewNewImages.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              className="w-full h-24 object-cover rounded"
-            />
-          ))}
-        </div>
-      )}
-
-      <button className="bg-black text-white w-full py-2">
+      <button className="bg-black text-white w-full py-2 rounded">
         Update Product
       </button>
     </form>

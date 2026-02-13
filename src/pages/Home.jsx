@@ -1,138 +1,122 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../services/api";
-import Loader from "../components/Loader";
 
 const Home = () => {
-  const [stats, setStats] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const [statsRes, productsRes] = await Promise.all([
-          api.get("/products/stats"),
-          api.get("/products"),
-        ]);
-
-        setStats(statsRes.data);
-        setProducts(productsRes.data);
-      } catch (error) {
-        console.error("Home data load failed", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHomeData();
-  }, []);
-
-  if (loading) return <Loader />;
-
   return (
-    <div className="px-6 py-10">
-      {/* ================= HERO SECTION ================= */}
-      <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">
-          Digital & Physical Products Marketplace
+    <div className="px-6 py-16">
+
+      {/* ================= HERO ================= */}
+      <section className="text-center max-w-4xl mx-auto">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+          Launch Your Own Online Store in Minutes
         </h1>
 
-        <p className="text-gray-600 mb-6 dark:text-gray-300">
-          Buy high-quality digital resources and modern devices from one
-          trusted platform. Secure checkout, instant download and fast
-          delivery.
+        <p className="text-gray-600 dark:text-gray-300 text-lg mb-8">
+          Create, customize and grow your digital or physical product business
+          with our powerful multi-store eCommerce SaaS platform.
         </p>
 
-        {/* LIVE STATS */}
-        {stats && (
-          <div className="flex justify-center gap-4 mb-8 text-sm">
-            <span className="border px-4 py-2 rounded">
-              {stats.total}+ Products
-            </span>
-            <span className="border px-4 py-2 rounded">
-              {stats.digital} Digital
-            </span>
-            <span className="border px-4 py-2 rounded">
-              {stats.physical} Physical
-            </span>
-          </div>
-        )}
+        <div className="flex justify-center gap-4 flex-wrap">
+          <Link
+            to="/register"
+            className="px-6 py-3 rounded text-white font-medium bg-black hover:bg-gray-800 transition"
+          >
+            🚀 Create Your Store
+          </Link>
 
-        <Link
-          to="/products"
-          className="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition"
-        >
-          Browse Products
-        </Link>
-      </div>
+          <Link
+            to="/products"
+            className="px-6 py-3 rounded border hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+          >
+            Browse Marketplace
+          </Link>
+        </div>
+      </section>
 
-      {/* ================= FEATURE HIGHLIGHTS ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 ">
-        <Feature
-          title="Secure Digital Download"
-          desc="Access purchased digital products securely from your dashboard."
-        />
-        <Feature
-          title="Physical Product Delivery"
-          desc="Get devices delivered to your doorstep with order tracking."
-        />
-        <Feature
-          title="Admin-Managed System"
-          desc="Products, orders and users fully controlled by admin."
-        />
-      </div>
+      {/* ================= FEATURES ================= */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 max-w-6xl mx-auto">
 
-      {/* ================= FEATURED PRODUCTS ================= */}
-      <div className="mt-20 dark:text-gray-100">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Featured Products
+        <Feature
+          title="Multi-Store System"
+          desc="Each seller gets a fully isolated store with custom branding, theme and product management."
+        />
+
+        <Feature
+          title="Digital & Physical Products"
+          desc="Sell instant download digital products or physical goods with stock management."
+        />
+
+        <Feature
+          title="Built-in Dashboard"
+          desc="Track orders, manage products, view revenue analytics and control your business easily."
+        />
+
+      </section>
+
+      {/* ================= HOW IT WORKS ================= */}
+      <section className="mt-24 text-center max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold mb-12">
+          How It Works
         </h2>
 
-        {products.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No products available right now.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {products.slice(0, 6).map((product) => (
-              <div
-                key={product._id}
-                className="border p-4 rounded hover:shadow transition"
-              >
-                <h3 className="font-semibold mb-1">
-                  {product.title}
-                </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                <p className="text-sm text-gray-500 mb-2 dark:text-gray-100">
-                  {product.type === "digital"
-                    ? "Instant Download"
-                    : "Physical Delivery"}
-                </p>
+          <Step
+            number="1"
+            title="Create Account"
+            desc="Sign up as a store owner and choose your store name."
+          />
 
-                <p className="font-bold mb-3">
-                  ৳ {product.price}
-                </p>
+          <Step
+            number="2"
+            title="Add Products"
+            desc="Upload digital files or physical products and set your pricing."
+          />
 
-                <Link
-                  to={`/product/${product.slug}`}
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  View Details →
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          <Step
+            number="3"
+            title="Start Selling"
+            desc="Share your store link and start receiving orders instantly."
+          />
+
+        </div>
+      </section>
+
+      {/* ================= CTA ================= */}
+      <section className="mt-28 text-center bg-black text-white py-16 rounded-lg">
+        <h2 className="text-3xl font-bold mb-6">
+          Ready to Build Your Online Business?
+        </h2>
+
+        <p className="mb-8 text-gray-300">
+          Join today and start selling without any technical complexity.
+        </p>
+
+        <Link
+          to="/register"
+          className="bg-white text-black px-8 py-3 rounded font-medium hover:opacity-90 transition"
+        >
+          Get Started Now
+        </Link>
+      </section>
+
     </div>
   );
 };
 
+/* ================= SUB COMPONENTS ================= */
+
 const Feature = ({ title, desc }) => (
-  <div className="border p-6 rounded hover:shadow transition">
+  <div className="p-6 border rounded hover:shadow transition text-center">
+    <h3 className="font-semibold text-lg mb-2">{title}</h3>
+    <p className="text-gray-600 dark:text-gray-300 text-sm">{desc}</p>
+  </div>
+);
+
+const Step = ({ number, title, desc }) => (
+  <div className="p-6 border rounded hover:shadow transition">
+    <div className="text-3xl font-bold mb-4">{number}</div>
     <h3 className="font-semibold mb-2">{title}</h3>
-    <p className="text-sm text-gray-600 dark:text-gray-100">{desc}</p>
+    <p className="text-gray-600 dark:text-gray-300 text-sm">{desc}</p>
   </div>
 );
 

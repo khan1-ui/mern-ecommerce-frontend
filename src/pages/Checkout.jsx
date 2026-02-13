@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../store/cart";
+import {CartProvider} from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 
 const Checkout = () => {
-  const { cartItems, clearCart, hasPhysicalProduct } = useCart();
+  const { cartItems, clearCart } = CartProvider();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -15,6 +15,10 @@ const Checkout = () => {
     address: "",
     city: "",
   });
+
+  const hasPhysicalProduct = cartItems.some(
+    (item) => item.type === "physical"
+  );
 
   const totalAmount = cartItems.reduce(
     (sum, item) => sum + item.price * item.qty,
@@ -27,7 +31,6 @@ const Checkout = () => {
       return;
     }
 
-    // 🛑 Physical product needs address
     if (hasPhysicalProduct) {
       const { name, phone, address: addr, city } = address;
       if (!name || !phone || !addr || !city) {
@@ -38,18 +41,21 @@ const Checkout = () => {
 
     try {
       await api.post("/orders", {
+        store: cartItems[0].store, // 🔥 SaaS isolation
         items: cartItems.map((item) => ({
-          product: item._id,
-          qty: item.qty,
-          type: item.type,
+          product: item.product,
+          name: item.name,
+          price: item.price,
+          quantity: item.qty,
         })),
-        deliveryAddress: hasPhysicalProduct ? address : null,
-        totalAmount,
+        shippingAddress: hasPhysicalProduct ? address : null,
       });
 
       showToast("Order placed successfully 🎉", "success");
+
       clearCart();
       navigate("/dashboard/orders");
+
     } catch (error) {
       showToast(
         error?.response?.data?.message || "Order failed",
@@ -68,11 +74,11 @@ const Checkout = () => {
       <div className="border p-4 rounded mb-6">
         {cartItems.map((item) => (
           <div
-            key={item._id}
+            key={item.product}
             className="flex justify-between text-sm mb-2"
           >
             <span>
-              {item.title} × {item.qty}
+              {item.name} × {item.qty}
             </span>
             <span>৳ {item.price * item.qty}</span>
           </div>

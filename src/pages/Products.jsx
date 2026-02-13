@@ -6,23 +6,50 @@ import Loader from "../components/Loader";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await api.get("/products");
-      setProducts(data);
-      setLoading(false);
+      try {
+        const { data } = await api.get("/products");
+        setProducts(data);
+      } catch (err) {
+        setError("Failed to load products");
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchProducts();
   }, []);
 
-  if (loading) return <Loader />;
+  if (loading) return <Loader fullScreen />;
+
+  if (error)
+    return (
+      <div className="text-center py-10 text-red-500">
+        {error}
+      </div>
+    );
+
+  if (products.length === 0)
+    return (
+      <div className="text-center py-10">
+        No products available.
+      </div>
+    );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-      {products.map((p) => (
-        <ProductCard key={p._id} product={p} />
-      ))}
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-6">
+        Marketplace Products
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {products.map((p) => (
+          <ProductCard key={p._id} product={p} />
+        ))}
+      </div>
     </div>
   );
 };

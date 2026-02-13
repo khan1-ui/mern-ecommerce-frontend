@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
+  const [accountType, setAccountType] = useState("customer");
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -23,28 +25,74 @@ export default function Register() {
     e.preventDefault();
 
     try {
+      const payload = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: accountType,
+      };
+
+      // 🔥 only send storeName if storeOwner
+      if (accountType === "storeOwner") {
+        payload.storeName = form.storeName;
+      }
+
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/register`,
-        form
+        `${import.meta.env.VITE_API_URL}/api/auth/register`,
+        payload
       );
 
       localStorage.setItem("token", data.token);
 
-      // 🔥 redirect to store page
-      navigate(`/store/${data.store}`);
+      // 🔥 redirect logic
+      if (accountType === "storeOwner") {
+        navigate(`/dashboard`);
+      } else {
+        navigate(`/`);
+      }
 
     } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      alert(
+        error.response?.data?.message ||
+          "Registration failed"
+      );
     }
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4">
-        Create Your Store
+    <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 rounded shadow">
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        Create Account
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {/* 🔥 Account Type Toggle */}
+      <div className="flex justify-center gap-4 mb-6">
+        <button
+          type="button"
+          onClick={() => setAccountType("customer")}
+          className={`px-4 py-2 rounded ${
+            accountType === "customer"
+              ? "bg-black text-white"
+              : "bg-gray-200"
+          }`}
+        >
+          Customer
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAccountType("storeOwner")}
+          className={`px-4 py-2 rounded ${
+            accountType === "storeOwner"
+              ? "bg-black text-white"
+              : "bg-gray-200"
+          }`}
+        >
+          Store Owner
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
 
         <input
           type="text"
@@ -73,20 +121,26 @@ export default function Register() {
           required
         />
 
-        <input
-          type="text"
-          name="storeName"
-          placeholder="Store Name (e.g. Rahim Fashion)"
-          className="w-full border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
+        {/* 🔥 Only show for Store Owner */}
+        {accountType === "storeOwner" && (
+          <input
+            type="text"
+            name="storeName"
+            placeholder="Store Name (e.g. Rahim Fashion)"
+            className="w-full border p-2 rounded"
+            onChange={handleChange}
+            required
+          />
+        )}
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded"
+          className="w-full py-2 rounded text-white"
+          style={{ backgroundColor: "var(--store-color)" }}
         >
-          Create Store
+          {accountType === "storeOwner"
+            ? "Create Store"
+            : "Register"}
         </button>
       </form>
     </div>

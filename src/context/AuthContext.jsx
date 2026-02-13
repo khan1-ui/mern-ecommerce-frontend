@@ -1,4 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import api from "../services/api";
 
 const AuthContext = createContext();
@@ -7,34 +12,60 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ================= LOGIN =================
   const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", {
-      email,
-      password,
-    });
-    localStorage.setItem("userInfo", JSON.stringify(data));
-    setUser(data);
-    return data;
+    try {
+      const { data } = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify(data)
+      );
+
+      setUser(data);
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
   };
 
+  // ================= LOGOUT =================
   const logout = () => {
     localStorage.removeItem("userInfo");
     setUser(null);
+    window.location.href = "/login";
   };
 
-  // 🔥 LOAD USER FROM BACKEND
+  // ================= LOAD USER =================
   useEffect(() => {
     const loadUser = async () => {
-      const stored = localStorage.getItem("userInfo");
-      if (!stored) {
-        setLoading(false);
-        return;
-      }
-
       try {
+        const stored = localStorage.getItem("userInfo");
+
+        if (!stored) {
+          setLoading(false);
+          return;
+        }
+
+        const parsed = JSON.parse(stored);
+
+        // fallback to stored info immediately
+        setUser(parsed);
+
+        // validate token with backend
         const { data } = await api.get("/auth/me");
-        setUser(data);
-      } catch {
+
+        // merge role + store from stored login if needed
+        setUser((prev) => ({
+          ...prev,
+          ...data,
+        }));
+
+      } catch (error) {
         logout();
       } finally {
         setLoading(false);
@@ -45,7 +76,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        isAuthenticated: !!user,
+        role: user?.role || null,
+        storeSlug: user?.store || null,
+      }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

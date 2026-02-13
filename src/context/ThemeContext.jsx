@@ -1,14 +1,22 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // ✅ always string: "light" | "dark"
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("theme") || "light";
-  });
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
-  // 🔁 sync with <html> + localStorage
+  const [storeColor, setStoreColor] = useState(
+    () => localStorage.getItem("storeColor") || "#000000"
+  );
+
+  // 🔁 Dark / Light Sync
   useEffect(() => {
     const root = document.documentElement;
 
@@ -21,7 +29,16 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // 🌗 instant toggle
+  // 🎨 Store Color Sync
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--store-color",
+      storeColor
+    );
+
+    localStorage.setItem("storeColor", storeColor);
+  }, [storeColor]);
+
   const toggleTheme = () => {
     setTheme((prev) =>
       prev === "light" ? "dark" : "light"
@@ -29,7 +46,14 @@ export const ThemeProvider = ({ children }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+        storeColor,
+        setStoreColor,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

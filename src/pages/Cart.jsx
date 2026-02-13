@@ -1,10 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../store/cart";
+import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 
 const Cart = () => {
-  const { cartItems, removeFromCart, clearCart, hasPhysicalProduct } =
-    useCart();
+  const {
+    cartItems,
+    removeFromCart,
+    clearCart,
+    hasPhysicalProduct,
+  } = useCart();
+
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -13,24 +18,26 @@ const Cart = () => {
     0
   );
 
+  const storeSlug = cartItems[0]?.storeSlug;
+
   const checkoutHandler = () => {
     if (cartItems.length === 0) {
       showToast("Cart is empty", "error");
       return;
     }
-    navigate("/checkout"); // future-ready
+
+    navigate(`/store/${storeSlug}/checkout`);
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Your Cart</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Your Cart
+      </h1>
 
       {cartItems.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-100">
-          Your cart is empty.{" "}
-          <Link to="/products" className="text-blue-600">
-            Browse products
-          </Link>
+        <p className="text-gray-500">
+          Your cart is empty.
         </p>
       ) : (
         <>
@@ -41,7 +48,9 @@ const Cart = () => {
                 className="border p-4 rounded flex justify-between items-center"
               >
                 <div>
-                  <h3 className="font-semibold">{item.title}</h3>
+                  <h3 className="font-semibold">
+                    {item.title}
+                  </h3>
                   <p className="text-sm text-gray-500">
                     {item.type === "digital"
                       ? "Digital Product"
@@ -53,7 +62,9 @@ const Cart = () => {
                 </div>
 
                 <button
-                  onClick={() => removeFromCart(item._id)}
+                  onClick={() =>
+                    removeFromCart(item._id)
+                  }
                   className="text-red-600 text-sm"
                 >
                   Remove
@@ -64,7 +75,9 @@ const Cart = () => {
 
           <div className="border-t mt-6 pt-4 flex justify-between items-center">
             <div>
-              <p className="font-semibold">Total: ৳ {total}</p>
+              <p className="font-semibold">
+                Total: ৳ {total}
+              </p>
               {hasPhysicalProduct && (
                 <p className="text-sm text-gray-500">
                   Delivery address required
@@ -79,6 +92,7 @@ const Cart = () => {
               >
                 Clear Cart
               </button>
+
               <button
                 onClick={checkoutHandler}
                 className="bg-black text-white px-6 py-2 rounded"

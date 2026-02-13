@@ -7,7 +7,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
-import ImportProducts from "./admin/ImportProducts";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
@@ -23,10 +22,13 @@ import Downloads from "./dashboard/Downloads";
 import Profile from "./dashboard/Profile";
 
 // Admin Pages
+import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
+import SuperAdminUsers from "./pages/superadmin/SuperAdminUsers";
 import AdminHome from "./admin/AdminHome";
 import AdminProducts from "./admin/Products";
 import AddProduct from "./admin/AddProduct";
 import EditProduct from "./admin/EditProduct";
+import StoreImport from "./admin/StoreImport";
 import AdminOrders from "./admin/Orders";
 import Users from "./admin/Users";
 
@@ -41,46 +43,48 @@ function App() {
         dark:bg-gray-900 dark:text-white
         transition-colors">
         <Routes>
-          {/* ================= PUBLIC ROUTES ================= */}
+          {/* ================= PUBLIC ================= */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/product/:slug" element={<ProductDetails />} />
+         <Route  path="/store/:storeSlug/product/:productSlug"
+            element={<ProductDetails />}
+          />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/store/:slug" element={<StorePage />} />
-          <Route path="/admin/store-settings" 
-          element={ <ProtectedRoute adminOnly>
-                  <StoreSettings />
-              </ProtectedRoute>
-                }
-              />
 
-          {/* ================= USER ROUTES ================= */}
-          <Route element={<ProtectedRoute />}>
+          {/* ================= CUSTOMER ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
             <Route path="/dashboard" element={<DashboardHome />} />
             <Route path="/dashboard/orders" element={<Orders />} />
             <Route path="/dashboard/downloads" element={<Downloads />} />
             <Route path="/dashboard/profile" element={<Profile />} />
           </Route>
 
-          {/* ================= ADMIN ROUTES ================= */}
-          <Route element={<ProtectedRoute adminOnly />}>
+          {/* ================= STORE OWNER ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["storeOwner"]} />}>
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/products/new" element={<AddProduct />} />
-            <Route path="/admin/products/:id/edit"element={<EditProduct/>}/>
-            <Route path="/admin/import" element={<ImportProducts />} />
-
-
+            <Route path="/admin/products/:id/edit" element={<EditProduct />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/users" element={<Users />} />            
+            <Route path="/admin/store-settings" element={<StoreSettings />} />
+            <Route path="/admin/store-import" element={<StoreImport />} />
+          </Route>
+
+          {/* ================= SUPER ADMIN ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
+            <Route path="/superadmin" element={<SuperAdminDashboard />} />
+            <Route path="/superadmin/users" element={<SuperAdminUsers />} />
           </Route>
 
           {/* ================= FALLBACK ================= */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
       </main>
 
       {/* Global Footer */}

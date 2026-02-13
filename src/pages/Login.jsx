@@ -3,10 +3,10 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+export default function Login() {
   const { login } = useAuth();
-  const navigate = useNavigate();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,15 +27,19 @@ const Login = () => {
 
       showToast("Login successful 🎉", "success");
 
-      // 🔥 SaaS Store-based redirect
-      if (user?.store) {
-        navigate(`/store/${user.store}`);
-      } else if (user?.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-
+      // 🔥 ROLE BASED REDIRECT
+     if (user.role === "superadmin") {
+          navigate("/superadmin");
+        } 
+        else if (user.role === "storeOwner") {
+          navigate("/admin");
+        } 
+        else if (user.role === "customer") {
+          navigate("/dashboard");
+        } 
+        else {
+          navigate("/");
+                }
     } catch (err) {
       showToast(
         err?.response?.data?.message || "Login failed",
@@ -47,45 +51,43 @@ const Login = () => {
   };
 
   return (
-    <form
-      onSubmit={submitHandler}
-      className="p-6 max-w-md mx-auto bg-white shadow rounded dark:bg-gray-800"
-    >
+    <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 rounded shadow">
       <h2 className="text-2xl font-semibold mb-6 text-center">
         Welcome Back
       </h2>
 
-      <input
-        className="border p-2 w-full mb-4 rounded dark:bg-gray-700"
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        disabled={loading}
-      />
+      <form onSubmit={submitHandler} className="space-y-4">
 
-      <input
-        className="border p-2 w-full mb-4 rounded dark:bg-gray-700"
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        disabled={loading}
-      />
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full border p-2 rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          required
+        />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className={`w-full py-2 rounded text-white transition ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-black hover:bg-gray-800"
-        }`}
-      >
-        {loading ? "Logging in..." : "Login"}
-      </button>
-    </form>
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full border p-2 rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
+          required
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-2 rounded text-white"
+          style={{ backgroundColor: "var(--store-color)" }}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+
+      </form>
+    </div>
   );
-};
-
-export default Login;
+}

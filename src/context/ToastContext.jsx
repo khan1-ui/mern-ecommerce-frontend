@@ -1,35 +1,65 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 
 const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
   const [toast, setToast] = useState({
     message: "",
-    type: "", // success | error | info
+    type: "",
     visible: false,
   });
 
-  const showToast = useCallback((message, type = "info") => {
-    setToast({
-      message,
-      type,
-      visible: true,
-    });
+  const timeoutRef = useRef(null);
 
-    // auto hide after 3s
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, visible: false }));
-    }, 3000);
-  }, []);
+  const showToast = useCallback(
+    (message, type = "info") => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      setToast({
+        message,
+        type,
+        visible: true,
+      });
+
+      timeoutRef.current = setTimeout(() => {
+        setToast((prev) => ({
+          ...prev,
+          visible: false,
+        }));
+      }, 3000);
+    },
+    []
+  );
+
+  const closeToast = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setToast((prev) => ({
+      ...prev,
+      visible: false,
+    }));
+  };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider
+      value={{ showToast, closeToast }}
+    >
       {children}
 
-      {/* 🔔 Toast UI */}
       {toast.visible && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-2 rounded shadow text-white
+          onClick={closeToast}
+          className={`fixed top-5 right-5 z-50 px-4 py-2 rounded shadow text-white cursor-pointer transition-opacity
             ${
               toast.type === "success"
                 ? "bg-green-600"

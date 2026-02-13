@@ -1,24 +1,18 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useCart } from "../store/cart";
+import { useCart } from "../context/CartContext";
 import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { cartItems } = useCart();
-  const navigate = useNavigate();
+  const { cart } = useCart();
 
   const [open, setOpen] = useState(false);
 
-  const cartCount = cartItems.length;
+  const cartCount = cart?.length || 0;
 
-  const logoutHandler = () => {
-    logout();
-    navigate("/login");
-    setOpen(false);
-  };
 
   return (
     <nav
@@ -58,17 +52,22 @@ const Navbar = () => {
 
           {user ? (
             <>
-              {user.role === "admin" && (
-                <Link
-                  to="/admin"
-                  className="text-red-600 font-semibold"
-                >
-                  Admin
-                </Link>
+              {/* Role-based menu */}
+              {user.role === "customer" && (
+                <Link to="/dashboard">Dashboard</Link>
               )}
 
-              {user.role === "user" && (
-                <Link to="/dashboard">Dashboard</Link>
+              {user.role === "storeOwner" && (
+                <Link to="/admin">Store Panel</Link>
+              )}
+
+              {user.role === "superadmin" && (
+                <Link
+                  to="/superadmin"
+                  className="text-red-600 font-semibold"
+                >
+                  Super Admin
+                </Link>
               )}
 
               <span className="text-gray-600 dark:text-gray-200">
@@ -76,7 +75,7 @@ const Navbar = () => {
               </span>
 
               <button
-                onClick={logoutHandler}
+                onClick={logout}
                 className="border px-3 py-1 rounded hover:bg-black hover:text-white transition"
               >
                 Logout
@@ -103,7 +102,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ================= MOBILE MENU ================= */}
+      {/* MOBILE MENU */}
       {open && (
         <div
           className="
@@ -123,17 +122,7 @@ const Navbar = () => {
 
           {user ? (
             <>
-              {user.role === "admin" && (
-                <Link
-                  onClick={() => setOpen(false)}
-                  to="/admin"
-                  className="text-red-600"
-                >
-                  Admin
-                </Link>
-              )}
-
-              {user.role === "user" && (
+              {user.role === "customer" && (
                 <Link
                   onClick={() => setOpen(false)}
                   to="/dashboard"
@@ -142,8 +131,29 @@ const Navbar = () => {
                 </Link>
               )}
 
+              {user.role === "storeOwner" && (
+                <Link
+                  onClick={() => setOpen(false)}
+                  to="/admin"
+                >
+                  Store Panel
+                </Link>
+              )}
+
+              {user.role === "superadmin" && (
+                <Link
+                  onClick={() => setOpen(false)}
+                  to="/superadmin"
+                >
+                  Super Admin
+                </Link>
+              )}
+
               <button
-                onClick={logoutHandler}
+                onClick={() => {
+                  logout();
+                  setOpen(false);
+                }}
                 className="border px-3 py-1 rounded text-left"
               >
                 Logout

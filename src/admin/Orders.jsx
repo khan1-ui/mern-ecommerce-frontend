@@ -6,6 +6,7 @@ import { useToast } from "../context/ToastContext";
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
   const { showToast } = useToast();
 
   const fetchOrders = async () => {
@@ -19,21 +20,30 @@ const Orders = () => {
     }
   };
 
-  const updateStatus = async (orderId, status) => {
-    const confirmUpdate = window.confirm(
-      `Change order status to "${status}"?`
-    );
-
-    if (!confirmUpdate) return;
+  const updateStatus = async (orderId, orderStatus) => {
+    if (!window.confirm(`Change order status to "${orderStatus}"?`))
+      return;
 
     try {
+      setUpdatingId(orderId);
+
       await api.put(`/admin/orders/${orderId}/status`, {
-        status,
+        orderStatus,
       });
+
       showToast("Order status updated", "success");
-      fetchOrders();
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId
+            ? { ...o, orderStatus }
+            : o
+        )
+      );
     } catch (error) {
       showToast("Status update failed", "error");
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -44,8 +54,7 @@ const Orders = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-white text-black
-  dark:bg-gray-900 dark:text-white">
+    <div className="p-6 max-w-6xl mx-auto bg-white dark:bg-gray-900 dark:text-white">
       <h2 className="text-2xl font-bold mb-6">
         Manage Orders
       </h2>
@@ -59,51 +68,54 @@ const Orders = () => {
           {orders.map((order) => (
             <div
               key={order._id}
-              className="border rounded p-4"
+              className="border rounded p-4 bg-white dark:bg-gray-800 shadow-sm"
             >
               {/* HEADER */}
-              <div className="flex justify-between text-sm mb-2">
+              <div className="flex justify-between text-sm mb-3">
                 <span>
                   <b>User:</b> {order.user?.email}
                 </span>
-                <span className="capitalize">
-                  <b>Status:</b> {order.status}
+
+                <span className="capitalize font-semibold">
+                  <b>Status:</b> {order.orderStatus}
                 </span>
               </div>
 
               {/* ITEMS */}
               <div className="space-y-1 text-sm">
                 {order.items.map((item, idx) => (
-                  <p key={idx}>
+                  <div key={idx}>
                     • {item.product?.title} (
-                    {item.type}) × {item.qty}
-                  </p>
+                    {item.product?.type}) ×{" "}
+                    {item.quantity}
+                  </div>
                 ))}
               </div>
 
               {/* ADDRESS */}
-              {order.deliveryAddress && (
-                <div className="text-sm mt-2 text-gray-600">
+              {order.shippingAddress && (
+                <div className="text-sm mt-2 text-gray-500">
                   <b>Delivery:</b>{" "}
-                  {order.deliveryAddress.address},{" "}
-                  {order.deliveryAddress.city}
+                  {order.shippingAddress.address},{" "}
+                  {order.shippingAddress.city}
                 </div>
               )}
 
               {/* ACTION */}
               <div className="mt-3">
                 <select
-                  value={order.status}
+                  value={order.orderStatus}
+                  disabled={updatingId === order._id}
                   onChange={(e) =>
                     updateStatus(
                       order._id,
                       e.target.value
                     )
                   }
-                  className="border p-2 text-sm"
+                  className="border p-2 text-sm rounded"
                 >
-                  <option value="paid">
-                    Paid
+                  <option value="pending">
+                    Pending
                   </option>
                   <option value="shipped">
                     Shipped
@@ -111,7 +123,22 @@ const Orders = () => {
                   <option value="delivered">
                     Delivered
                   </option>
+                  <option value="cancelled">
+                    Cancelled
+                  </option>
                 </select>
+              </div>
+
+              {/* FOOTER */}
+              <div className="text-sm mt-3 border-t pt-2 flex justify-between">
+                <span>
+                  Total: ৳ {order.totalAmount}
+                </span>
+                <span>
+                  {new Date(
+                    order.createdAt
+                  ).toLocaleDateString()}
+                </span>
               </div>
             </div>
           ))}

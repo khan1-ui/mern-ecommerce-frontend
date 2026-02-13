@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api, { getImageUrl } from "../services/api";
 import ProductCard from "../components/ProductCard";
+import Loader from "../components/Loader";
 
 export default function StorePage() {
   const { slug } = useParams();
@@ -17,51 +18,44 @@ export default function StorePage() {
         setLoading(true);
         setError("");
 
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/store/${slug}`
-        );
+        const { data } = await api.get(`/store/${slug}`);
 
         setStore(data.store);
         setProducts(data.products);
       } catch (err) {
-        setError("Store not found or server error.");
+        setError("Store not found.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (slug) {
-      fetchStore();
-    }
+    if (slug) fetchStore();
   }, [slug]);
 
-  // 🔄 Loading State
-  if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-500">
-        Loading store...
-      </div>
-    );
-  }
+  if (loading) return <Loader fullScreen />;
 
-  // ❌ Error State
-  if (error) {
+  if (error)
     return (
       <div className="p-10 text-center text-red-500">
         {error}
       </div>
     );
-  }
 
   if (!store) return null;
+
+  const themeColor = store.themeColor || "#000000";
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
 
-      {/* 🔥 Banner Section */}
+      {/* 🔥 Banner */}
       <div className="relative h-72">
         <img
-          src={store.banner || "https://via.placeholder.com/1200x400"}
+          src={
+            store.banner?.startsWith("http")
+              ? store.banner
+              : getImageUrl(store.banner)
+          }
           alt="banner"
           className="w-full h-full object-cover"
         />
@@ -69,7 +63,7 @@ export default function StorePage() {
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
           <h1
             className="text-4xl font-bold"
-            style={{ color: store.themeColor || "#ffffff" }}
+            style={{ color: themeColor }}
           >
             {store.name}
           </h1>
@@ -80,8 +74,9 @@ export default function StorePage() {
       <div className="text-center -mt-14 relative z-10 px-4">
         <img
           src={
-            store.logo ||
-            "https://via.placeholder.com/150?text=Logo"
+            store.logo?.startsWith("http")
+              ? store.logo
+              : getImageUrl(store.logo)
           }
           alt="logo"
           className="w-28 h-28 rounded-full mx-auto border-4 border-white shadow-lg object-cover"
@@ -92,7 +87,7 @@ export default function StorePage() {
         </p>
       </div>
 
-      {/* 🔥 Products Section */}
+      {/* 🔥 Products */}
       <div className="p-6 max-w-7xl mx-auto">
         {products.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
@@ -104,6 +99,7 @@ export default function StorePage() {
               <ProductCard
                 key={product._id}
                 product={product}
+                storeSlug={store.slug} // 🔥 Important
               />
             ))}
           </div>

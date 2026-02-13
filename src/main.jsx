@@ -5,13 +5,13 @@ import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
-import { CartProvider } from "./store/cart";
+import { CartProvider } from "./context/CartContext";
 
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter> 
     <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
