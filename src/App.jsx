@@ -24,6 +24,7 @@ import Profile from "./dashboard/Profile";
 // Admin Pages
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import SuperAdminUsers from "./pages/superadmin/SuperAdminUsers";
+import SuperAdminStores from "./pages/superadmin/SuperAdminStores";
 import AdminHome from "./admin/AdminHome";
 import AdminProducts from "./admin/Products";
 import AddProduct from "./admin/AddProduct";
@@ -79,6 +80,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
             <Route path="/superadmin" element={<SuperAdminDashboard />} />
             <Route path="/superadmin/users" element={<SuperAdminUsers />} />
+            <Route path="/superadmin/stores" element={<SuperAdminStores />} />
           </Route>
 
           {/* ================= FALLBACK ================= */}
