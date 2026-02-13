@@ -26,23 +26,44 @@ const ActionCard = ({ to, title, desc }) => (
 const AdminHome = () => {
   const { user } = useAuth();
 
-  const [stats, setStats] = useState(null);
+  // ✅ Safe Initial State (Production Pattern)
+  const [stats, setStats] = useState({
+    storeExists: true,
+    usersCount: 0,
+    products: {
+      total: 0,
+      digital: 0,
+      physical: 0,
+    },
+    orders: {
+      total: 0,
+      paid: 0,
+      shipped: 0,
+      delivered: 0,
+    },
+    revenue: 0,
+  });
+
   const [revenueData, setRevenueData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, revenueRes] =
-          await Promise.all([
-            api.get("/api/store-owner/stats"),
-            api.get("/api/store-owner/revenue"),
-          ]);
+        const [statsRes, revenueRes] = await Promise.all([
+          api.get("/api/store-owner/stats"),
+          api.get("/api/store-owner/revenue"),
+        ]);
 
-        setStats(statsRes.data);
-        setRevenueData(revenueRes.data);
+        // ✅ Merge fallback structure
+        setStats((prev) => ({
+          ...prev,
+          ...statsRes.data,
+        }));
+
+        setRevenueData(revenueRes.data || []);
       } catch (err) {
-        console.error("Dashboard load failed");
+        console.error("Dashboard load failed", err);
       } finally {
         setLoading(false);
       }
@@ -53,10 +74,24 @@ const AdminHome = () => {
 
   if (loading) return <Loader />;
 
-  if (!stats) {
+  // ✅ If Store Not Created
+  if (!stats?.storeExists) {
     return (
-      <div className="p-6 text-center text-red-500">
-        Failed to load dashboard data.
+      <div className="p-6 text-center">
+        <h2 className="text-2xl font-semibold mb-4">
+          No Store Found
+        </h2>
+
+        <p className="text-gray-500 mb-6">
+          You need to create a store before viewing the dashboard.
+        </p>
+
+        <Link
+          to="/admin/create-store"
+          className="bg-black text-white px-6 py-2 rounded hover:opacity-90"
+        >
+          Create Store
+        </Link>
       </div>
     );
   }
@@ -77,19 +112,22 @@ const AdminHome = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Total Users"
-          value={stats.usersCount}
+          value={stats?.usersCount ?? 0}
         />
+
         <StatCard
           title="Total Products"
-          value={stats.products.total}
+          value={stats?.products?.total ?? 0}
         />
+
         <StatCard
           title="Total Orders"
-          value={stats.orders.total}
+          value={stats?.orders?.total ?? 0}
         />
+
         <StatCard
           title="Revenue"
-          value={`৳ ${stats.revenue}`}
+          value={`৳ ${stats?.revenue ?? 0}`}
         />
       </div>
 
@@ -99,17 +137,17 @@ const AdminHome = () => {
           <h2 className="font-semibold mb-2">
             Products Breakdown
           </h2>
-          <p>Digital: {stats.products.digital}</p>
-          <p>Physical: {stats.products.physical}</p>
+          <p>Digital: {stats?.products?.digital ?? 0}</p>
+          <p>Physical: {stats?.products?.physical ?? 0}</p>
         </div>
 
         <div className="border rounded p-4 bg-white dark:bg-gray-800">
           <h2 className="font-semibold mb-2">
             Orders Status
           </h2>
-          <p>Paid: {stats.orders.paid}</p>
-          <p>Shipped: {stats.orders.shipped}</p>
-          <p>Delivered: {stats.orders.delivered}</p>
+          <p>Paid: {stats?.orders?.paid ?? 0}</p>
+          <p>Shipped: {stats?.orders?.shipped ?? 0}</p>
+          <p>Delivered: {stats?.orders?.delivered ?? 0}</p>
         </div>
       </div>
 
@@ -142,7 +180,7 @@ const AdminHome = () => {
       <AdminCharts stats={stats} />
 
       {/* ================= REVENUE CHART ================= */}
-      {revenueData.length > 0 && (
+      {revenueData?.length > 0 && (
         <RevenueChart data={revenueData} />
       )}
     </div>
