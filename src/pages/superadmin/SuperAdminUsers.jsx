@@ -11,7 +11,7 @@ export default function SuperAdminUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await api.get("/superadmin/users");
+        const { data } = await api.get("/api/superadmin/users");
         setUsers(data);
       } catch (err) {
         showToast("Failed to load users", "error");
