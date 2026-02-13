@@ -38,7 +38,7 @@ export default function StoreImport() {
       setLoading(true);
 
       const { data } = await api.post(
-        "/store-owner/import",
+        "/api/store-owner/import",
         formData,
         {
           headers: {

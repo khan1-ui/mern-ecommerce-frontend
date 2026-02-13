@@ -79,14 +79,14 @@ const AddProduct = () => {
         );
 
         await api.post(
-          "/store-owner/products",
+          "/api/store-owner/products",
           formData
         );
       } else {
         formData.append("file", digitalFile);
 
         await api.post(
-          "/store-owner/products/digital",
+          "/api/store-owner/products/digital",
           formData
         );
       }
