@@ -13,9 +13,9 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async () => { 
     try {
-      const { data } = await api.get("/admin/products");
+      const { data } = await api.get("/api/store-owner/products");
       setProducts(data);
     } catch (error) {
       showToast("Failed to load products", "error");
@@ -30,7 +30,7 @@ const Products = () => {
 
     try {
       setDeletingId(id);
-      await api.delete(`/admin/products/${id}`);
+      await api.delete(`/api/store-owner/products/${id}`);
       setProducts((prev) => prev.filter((p) => p._id !== id));
       showToast("Product deleted successfully", "success");
     } catch (error) {
