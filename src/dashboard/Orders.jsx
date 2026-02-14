@@ -77,7 +77,7 @@ const InvoicePreview = ({ order, onClose }) => {
 
         {/* ✅ Correct Invoice Route */}
         <a
-          href={`${import.meta.env.VITE_API_URL}/invoice/orders/${order._id}/invoice`}
+          href={`${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`}
           target="_blank"
           rel="noopener noreferrer"
           className="block text-center bg-black text-white py-2 rounded"
