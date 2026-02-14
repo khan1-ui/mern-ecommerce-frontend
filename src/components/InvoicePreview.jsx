@@ -72,7 +72,7 @@ const InvoicePreview = ({ order, onClose }) => {
           </p>
         </div>
 
-             <button
+        <button
   onClick={async () => {
     try {
       const response = await api.get(
@@ -82,26 +82,27 @@ const InvoicePreview = ({ order, onClose }) => {
         }
       );
 
-      const url = window.URL.createObjectURL(
-        new Blob([response.data])
-      );
+      const blob = new Blob([response.data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `invoice-${order._id}.pdf`
-      );
+      link.download = `invoice-${order._id}.pdf`;
 
       document.body.appendChild(link);
       link.click();
       link.remove();
 
+      window.URL.revokeObjectURL(url);
+
     } catch (error) {
       console.error("Invoice download failed:", error);
     }
   }}
-  className="block text-center bg-black text-white py-2 rounded"
+  className="block w-full text-center bg-black text-white py-2 rounded"
 >
   Download PDF Invoice
 </button>
