@@ -23,7 +23,7 @@ export default function StoreOwnerNavbar() {
           <Link to="/admin">Dashboard</Link>
           <Link to="/admin/products">Products</Link>
           <Link to="/admin/orders">Orders</Link>
-          <Link to="/admin/store-settings">Settings</Link>
+          <Link to="/admin/store-settings">Settings</Link> 
 
           <span className="text-gray-600 dark:text-gray-200">
             Hi, {user?.name}

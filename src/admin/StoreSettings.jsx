@@ -58,7 +58,7 @@ export default function StoreSettings() {
     e.preventDefault();
 
     try {
-      await api.put("/store/settings", form);
+      await api.put("/api/store-owner/settings", form); 
 
       showToast(
         "Store updated successfully ✅",
