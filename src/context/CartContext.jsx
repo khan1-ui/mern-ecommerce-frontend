@@ -1,76 +1,43 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import api from "../services/api"
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(() => {
-    const stored = localStorage.getItem("cart");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [cart, setCart] = useState({ items: [] });
+  const [loading, setLoading] = useState(true);
+
+  const fetchCart = async () => {
+    try {
+      const { data } = await api.get("/cart");
+      setCart(data);
+    } catch (error) {
+      console.error("Cart fetch error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+    fetchCart();
+  }, []);
 
-  const addToCart = (product) => {
-    setCartItems((prev) => {
-      const existing = prev.find(
-        (item) => item.product === product._id
-      );
-
-      if (existing) {
-        return prev.map((item) =>
-          item.product === product._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          product: product._id,
-          store: product.store,
-          name: product.title,
-          price: product.price,
-          quantity: 1,
-        },
-      ];
+  const addToCart = async (productId) => {
+    const { data } = await api.post("/cart", {
+      productId,
+      quantity: 1,
     });
+    setCart(data);
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems((prev) =>
-      prev.filter((item) => item.product !== productId)
-    );
+  const removeFromCart = async (productId) => {
+    const { data } = await api.delete(`/cart/${productId}`);
+    setCart(data);
   };
-
-  const updateQty = (productId, qty) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.product === productId
-          ? { ...item, quantity: Math.max(1, qty) }
-          : item
-      )
-    );
-  };
-
-  const clearCart = () => setCartItems([]);
 
   return (
     <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQty,
-        clearCart,
-      }}
+      value={{ cart, loading, addToCart, removeFromCart }}
     >
       {children}
     </CartContext.Provider>
