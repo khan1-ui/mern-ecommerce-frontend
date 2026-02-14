@@ -1,9 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
   const [accountType, setAccountType] = useState("customer");
+   const { login } = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -21,43 +23,42 @@ export default function Register() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: accountType,
-      };
+  try {
+    const payload = {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: accountType,
+    };
 
-      // 🔥 only send storeName if storeOwner
-      if (accountType === "storeOwner") {
-        payload.storeName = form.storeName;
-      }
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/register`,
-        payload
-      );
-
-      localStorage.setItem("token", data.token);
-
-      // 🔥 redirect logic
-      if (accountType === "storeOwner") {
-        navigate(`/dashboard`);
-      } else {
-        navigate(`/`);
-      }
-
-    } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "Registration failed"
-      );
+    if (accountType === "storeOwner") {
+      payload.storeName = form.storeName;
     }
-  };
+
+    const { data } = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/auth/register`,
+      payload
+    );
+
+    login(data);
+
+    if (accountType === "storeOwner") {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
+
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+      "Registration failed"
+    );
+  }
+};
+
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 rounded shadow">
