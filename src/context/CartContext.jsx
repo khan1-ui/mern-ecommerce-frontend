@@ -13,16 +13,14 @@ export const CartProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Persist cart
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // ================= ADD TO CART =================
   const addToCart = (product) => {
-    console.log("ADDING PRODUCT:", product);
     setCart((prev) => {
-      // 🔒 Store isolation (SaaS safe)
+
+      // 🔥 Store isolation
       if (
         prev.length > 0 &&
         prev[0].storeSlug !== product.storeSlug
@@ -52,21 +50,18 @@ export const CartProvider = ({ children }) => {
           type: product.type,
           price: product.price,
           image: product.images?.[0] || null,
-          storeId: product.store,
           storeSlug: product.storeSlug,
         },
       ];
     });
   };
 
-  // ================= REMOVE =================
   const removeFromCart = (productId) => {
     setCart((prev) =>
       prev.filter((item) => item.productId !== productId)
     );
   };
 
-  // ================= UPDATE QTY =================
   const updateQty = (productId, qty) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -77,10 +72,7 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // ================= CLEAR =================
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
   const hasPhysicalProduct = cart.some(
     (item) => item.type === "physical"
