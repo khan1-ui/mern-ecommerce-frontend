@@ -45,7 +45,7 @@ export default function Register() {
 
       // 🔥 No auto-login
       // 🔥 Always go to login page
-    showToast("Registration successful. Please login.");
+    showToast("Registration successful🎉", "success");
     navigate("/login");
 
     } catch (error) {
