@@ -1,11 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
   const [accountType, setAccountType] = useState("customer");
-   const { login } = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -23,42 +21,41 @@ export default function Register() {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const payload = {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      role: accountType,
-    };
+    try {
+      const payload = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: accountType,
+      };
 
-    if (accountType === "storeOwner") {
-      payload.storeName = form.storeName;
+      if (accountType === "storeOwner") {
+        payload.storeName = form.storeName;
+      }
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/register`,
+        payload
+      );
+
+      // 🔥 No auto-login
+      // 🔥 Always go to login page
+      navigate("/login", {
+        state: {
+          message: "Registration successful. Please login.",
+        },
+      });
+
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+        "Registration failed"
+      );
     }
-
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/auth/register`,
-      payload
-    );
-
-    login(data);
-
-    if (accountType === "storeOwner") {
-      navigate("/admin");
-    } else {
-      navigate("/");
-    }
-
-  } catch (error) {
-    alert(
-      error.response?.data?.message ||
-      "Registration failed"
-    );
-  }
-};
-
+  };
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 rounded shadow">
@@ -66,7 +63,7 @@ const handleSubmit = async (e) => {
         Create Account
       </h2>
 
-      {/* 🔥 Account Type Toggle */}
+      {/* Account Type Toggle */}
       <div className="flex justify-center gap-4 mb-6">
         <button
           type="button"
@@ -122,7 +119,6 @@ const handleSubmit = async (e) => {
           required
         />
 
-        {/* 🔥 Only show for Store Owner */}
         {accountType === "storeOwner" && (
           <input
             type="text"
@@ -136,8 +132,7 @@ const handleSubmit = async (e) => {
 
         <button
           type="submit"
-          className="w-full py-2 rounded text-white"
-          style={{ backgroundColor: "var(--store-color)" }}
+          className="w-full py-2 rounded text-white bg-black hover:opacity-90"
         >
           {accountType === "storeOwner"
             ? "Create Store"
