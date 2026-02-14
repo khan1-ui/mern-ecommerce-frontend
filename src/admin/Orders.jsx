@@ -9,9 +9,9 @@ const Orders = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const { showToast } = useToast();
 
-  const fetchOrders = async () => {
+  const fetchOrders = async () => { 
     try {
-      const { data } = await api.get("/admin/orders");
+      const { data } = await api.get("/api/store-owner/orders");
       setOrders(data);
     } catch (error) {
       showToast("Failed to load orders", "error");
@@ -27,7 +27,7 @@ const Orders = () => {
     try {
       setUpdatingId(orderId);
 
-      await api.put(`/admin/orders/${orderId}/status`, {
+      await api.put(`/api/store-owner/${orderId}/status`, {
         orderStatus,
       });
 
