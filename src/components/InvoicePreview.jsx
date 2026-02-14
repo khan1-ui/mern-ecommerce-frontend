@@ -75,21 +75,20 @@ const InvoicePreview = ({ order, onClose }) => {
         <button
   onClick={async () => {
   try {
-    console.log("Calling invoice route...");
+    const token = JSON.parse(
+      localStorage.getItem("userInfo")
+    )?.token;
 
-    const response = await api.get(
-      `/api/invoice/orders/${order._id}/invoice`,
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`,
       {
-        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
-    console.log("Response received", response);
-
-    const blob = new Blob([response.data], {
-      type: "application/pdf",
-    });
-
+    const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
 
     const link = document.createElement("a");
@@ -99,9 +98,8 @@ const InvoicePreview = ({ order, onClose }) => {
     link.click();
     link.remove();
 
-  } catch (error) {
-    console.error("Invoice download failed:");
-    console.log(error.response);
+  } catch (err) {
+    console.log(err);
   }
 }}
 
