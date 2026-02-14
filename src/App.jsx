@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,65 +36,64 @@ import Users from "./admin/Users";
 
 function App() {
   return (
-    <CartProvider>
-      <>
-        <Navbar />
+    <>
+      {/* Global Navbar */}
+      <Navbar />
 
-        <main
-          className="min-h-screen
-            bg-white text-black
-            dark:bg-gray-900 dark:text-white
-            transition-colors"
-        >
-          <Routes>
-            {/* ================= PUBLIC ================= */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-            <Route  path="/store/:storeSlug/product/:slug"
-                element={<ProductDetails />}
-              />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/store/:slug" element={<StorePage />} />
+      <main className="min-h-screen
+        bg-white text-black
+        dark:bg-gray-900 dark:text-white
+        transition-colors">
+        <Routes>
+          {/* ================= PUBLIC ================= */}
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+         <Route  path="/store/:storeSlug/product/:slug"
+            element={<ProductDetails />}
+          />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/store/:slug" element={<StorePage />} />
 
-              {/* ================= CUSTOMER ================= */}
-              <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
-                <Route path="/dashboard" element={<DashboardHome />} />
-                <Route path="/dashboard/orders" element={<Orders />} />
-                <Route path="/dashboard/downloads" element={<Downloads />} />
-                <Route path="/dashboard/profile" element={<Profile />} />
-              </Route>
+          {/* ================= CUSTOMER ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route path="/dashboard/orders" element={<Orders />} />
+            <Route path="/dashboard/downloads" element={<Downloads />} />
+            <Route path="/dashboard/profile" element={<Profile />} />
+          </Route>
 
-              {/* ================= STORE OWNER ================= */}
-              <Route element={<ProtectedRoute allowedRoles={["storeOwner"]} />}>
-                <Route path="/admin" element={<AdminHome />} />
-                <Route path="/admin/products" element={<AdminProducts />} />
-                <Route path="/admin/products/new" element={<AddProduct />} />
-                <Route path="/admin/products/:id/edit" element={<EditProduct />} />
-                <Route path="/admin/orders" element={<AdminOrders />} />
-                <Route path="/admin/users" element={<Users />} />            
-                <Route path="/admin/store-settings" element={<StoreSettings />} />
-                <Route path="/admin/store-import" element={<StoreImport />} />
-              </Route>
+          {/* ================= STORE OWNER ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["storeOwner"]} />}>
+            <Route path="/admin" element={<AdminHome />} />
+            <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/admin/products/new" element={<AddProduct />} />
+            <Route path="/admin/products/:id/edit" element={<EditProduct />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/users" element={<Users />} />            
+            <Route path="/admin/store-settings" element={<StoreSettings />} />
+            <Route path="/admin/store-import" element={<StoreImport />} />
+          </Route>
 
-              {/* ================= SUPER ADMIN ================= */}
-              <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
-                <Route path="/superadmin" element={<SuperAdminDashboard />} />
-                <Route path="/superadmin/users" element={<SuperAdminUsers />} />
-                <Route path="/superadmin/stores" element={<SuperAdminStores />} />
-                <Route path="/superadmin/products" element={<SuperAdminProducts />}/>
-              </Route>
+          {/* ================= SUPER ADMIN ================= */}
+          <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
+            <Route path="/superadmin" element={<SuperAdminDashboard />} />
+            <Route path="/superadmin/users" element={<SuperAdminUsers />} />
+            <Route path="/superadmin/stores" element={<SuperAdminStores />} />
+            <Route path="/superadmin/products" element={<SuperAdminProducts />}/>
+          </Route>
 
-              {/* ================= FALLBACK ================= */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+          {/* ================= FALLBACK ================= */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
-        <Footer />
-      </>
-    </CartProvider>
+      </main>
+
+      {/* Global Footer */}
+      <Footer />
+    </>
   );
 }
 
