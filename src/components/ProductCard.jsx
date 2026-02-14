@@ -21,7 +21,7 @@ const ProductCard = ({ product }) => {
     >
       {/* IMAGE */}
       <div className="h-44 bg-gray-100 dark:bg-gray-700">
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/store/${product.store.slug}/product/${product.slug}`}>
           <img
             src={imageUrl}
             alt={product.title}
@@ -41,7 +41,7 @@ const ProductCard = ({ product }) => {
         </p>
 
         <Link
-          to={`/product/${product.slug}`}
+          to={`/store/${product.store.slug}/product/${product.slug}`}
           className="
             inline-block mt-3
             text-sm font-medium

@@ -48,7 +48,7 @@ function App() {
           {/* ================= PUBLIC ================= */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
-         <Route  path="/store/:storeSlug/product/:productSlug"
+         <Route  path="/store/:storeSlug/product/:slug"
             element={<ProductDetails />}
           />
           <Route path="/cart" element={<Cart />} />
