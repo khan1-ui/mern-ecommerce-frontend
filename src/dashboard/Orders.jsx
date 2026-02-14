@@ -99,7 +99,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const { data } = await api.get("/orders/my");
+        const { data } = await api.get("/api/orders/my");
         setOrders(data);
       } catch (error) {
         showToast(
