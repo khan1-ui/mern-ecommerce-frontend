@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Loader from "../components/Loader";
 import { useToast } from "../context/ToastContext";
-
+import logo from "../assets/logo.png";
 /* ================= INVOICE PREVIEW ================= */
 const InvoicePreview = ({ order, onClose }) => {
   if (!order) return null;
@@ -50,7 +50,7 @@ const InvoicePreview = ({ order, onClose }) => {
           <div className="space-y-1">
             {order.store?.logo && (
               <img
-                src={order.store.logo}
+                src={logo}
                 alt="Store Logo"
                 className="h-12"
               />
