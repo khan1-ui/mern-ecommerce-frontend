@@ -1,9 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 
 export default function Register() {
   const [accountType, setAccountType] = useState("customer");
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     name: "",
@@ -43,11 +45,8 @@ export default function Register() {
 
       // 🔥 No auto-login
       // 🔥 Always go to login page
-      navigate("/login", {
-        state: {
-          message: "Registration successful. Please login.",
-        },
-      });
+    showToast("Registration successful. Please login.");
+    navigate("/login");
 
     } catch (error) {
       alert(
