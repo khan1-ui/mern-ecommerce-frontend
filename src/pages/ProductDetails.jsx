@@ -108,23 +108,26 @@ const ProductDetails = () => {
         )}
 
         <button
-          disabled={
-            product.type === "physical" && product.stock === 0
-          }
-          onClick={() => { console.log("clicked", product);
-              addToCart({ ...product,storeSlug, })
-            }}
+            disabled={
+              product.type === "physical" && product.stock === 0
+            }
+            onClick={() =>
+              addToCart({
+                ...product,
+                storeSlug,
+              })
+            }
+            className={`px-6 py-2 rounded transition ${
+              product.type === "physical" && product.stock === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black text-white hover:bg-gray-800"
+            }`}
+          >
+            {product.type === "physical" && product.stock === 0
+              ? "Out of Stock"
+              : "Add to Cart"}
+          </button>
 
-          className={`px-6 py-2 rounded transition ${
-            product.type === "physical" && product.stock === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-black text-white hover:bg-gray-800"
-          }`}
-        >
-          {product.type === "physical" && product.stock === 0
-            ? "Out of Stock"
-            : "Add to Cart"}
-        </button>
       </div>
     </div>
   );

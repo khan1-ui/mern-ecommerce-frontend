@@ -6,77 +6,84 @@ import {
 } from "react";
 
 const CartContext = createContext();
- 
+
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
     const stored = localStorage.getItem("cart");
     return stored ? JSON.parse(stored) : [];
   });
 
+  // Persist cart
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // ➕ Add to Cart (SaaS Safe)
- const addToCart = (product) => {
-  setCart((prev) => {
-    // 🔥 Store isolation
-    if (
-      prev.length > 0 &&
-      prev[0].storeSlug !== product.storeSlug
-    ) {
-      alert("You can only order from one store at a time.");
-      return prev;
-    }
+  // ================= ADD TO CART =================
+  const addToCart = (product) => {
+    setCart((prev) => {
+      // 🔒 Store isolation (SaaS safe)
+      if (
+        prev.length > 0 &&
+        prev[0].storeSlug !== product.storeSlug
+      ) {
+        alert("You can only order from one store at a time.");
+        return prev;
+      }
 
-    const existingIndex = prev.findIndex(
-      (item) => item.product === product._id
-    );
-
-    // ✅ FIXED
-    if (existingIndex !== -1) {
-      return prev.map((item) =>
-        item.product === product._id
-          ? { ...item, qty: item.qty + 1 }
-          : item
+      const existing = prev.find(
+        (item) => item.productId === product._id
       );
-    }
 
-    return [
-      ...prev,
-      {
-        product: product._id,
-        name: product.title,
-        qty: 1,
-        type: product.type,
-        price: product.price,
-        image: product.images?.[0] || null,
-        store: product.store,
-        storeSlug: product.storeSlug, // 🔥 IMPORTANT
-      },
-    ];
-  });
-};
+      if (existing) {
+        return prev.map((item) =>
+          item.productId === product._id
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        );
+      }
 
+      return [
+        ...prev,
+        {
+          productId: product._id,
+          title: product.title,
+          qty: 1,
+          type: product.type,
+          price: product.price,
+          image: product.images?.[0] || null,
+          storeId: product.store,
+          storeSlug: product.storeSlug,
+        },
+      ];
+    });
+  };
+
+  // ================= REMOVE =================
   const removeFromCart = (productId) => {
     setCart((prev) =>
-      prev.filter((item) => item.product !== productId)
+      prev.filter((item) => item.productId !== productId)
     );
   };
 
+  // ================= UPDATE QTY =================
   const updateQty = (productId, qty) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.product === productId
+        item.productId === productId
           ? { ...item, qty: Math.max(1, qty) }
           : item
       )
     );
   };
 
+  // ================= CLEAR =================
   const clearCart = () => {
     setCart([]);
   };
+
+  const hasPhysicalProduct = cart.some(
+    (item) => item.type === "physical"
+  );
 
   return (
     <CartContext.Provider
@@ -86,6 +93,7 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         updateQty,
         clearCart,
+        hasPhysicalProduct,
       }}
     >
       {children}
