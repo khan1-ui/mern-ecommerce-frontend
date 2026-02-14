@@ -1,50 +1,47 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import api from "../services/api"
+import api from "../services/api";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
-  console.log(cart);
-  console.log(cart.items[0]);
-console.log(cart.items[0].product);
-
 
   const fetchCart = async () => {
     try {
-      const { data } = await api.get("/api/cart");
-      setCart(data);
+      const { data } = await api.get("/api/cart"); // 🔥 no double /api
+      setCart(data || { items: [] });
     } catch (error) {
       console.error("Cart fetch error", error);
+      setCart({ items: [] });
     } finally {
       setLoading(false);
     }
   };
 
- useEffect(() => {
-  const userInfo = localStorage.getItem("userInfo");
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
 
-  if (!userInfo) {
-    setLoading(false);
-    return;
-  }
+    if (!userInfo) {
+      setLoading(false);
+      return;
+    }
 
-  fetchCart();
-}, []);
-
+    fetchCart();
+  }, []);
 
   const addToCart = async (productId) => {
     const { data } = await api.post("/api/cart", {
       productId,
       quantity: 1,
     });
-    setCart(data);
+
+    setCart(data || { items: [] });
   };
 
   const removeFromCart = async (productId) => {
     const { data } = await api.delete(`/api/cart/${productId}`);
-    setCart(data);
+    setCart(data || { items: [] });
   };
 
   return (
