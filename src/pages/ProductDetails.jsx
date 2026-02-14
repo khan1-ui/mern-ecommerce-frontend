@@ -1,37 +1,52 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../services/api";
+import api, { getImageUrl } from "../services/api";
 import { useCart } from "../context/CartContext";
 import Loader from "../components/Loader";
-import { getImageUrl } from "../services/api";
 
 const ProductDetails = () => {
-  const { storeSlug, productSlug } = useParams();
+  const { storeSlug, slug } = useParams();
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const { data } = await api.get(
-          `/store/${storeSlug}/product/${productSlug}`
+          `/products/store/${storeSlug}/product/${slug}`
         );
+
         setProduct(data);
       } catch (err) {
-        console.error("Failed to load product");
+        console.error("PRODUCT DETAIL ERROR:", err);
+        setError("Product not found");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
-  }, [storeSlug, productSlug]);
+    if (storeSlug && slug) {
+      fetchProduct();
+    }
+  }, [storeSlug, slug]);
 
   if (loading) return <Loader fullScreen />;
-  if (!product) return <p className="p-6">Product not found</p>;
+
+  if (error)
+    return (
+      <div className="p-10 text-center text-red-500">
+        {error}
+      </div>
+    );
+
+  if (!product) return null;
 
   const images =
     product.images?.length > 0
@@ -93,10 +108,19 @@ const ProductDetails = () => {
         )}
 
         <button
+          disabled={
+            product.type === "physical" && product.stock === 0
+          }
           onClick={() => addToCart(product)}
-          className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
+          className={`px-6 py-2 rounded transition ${
+            product.type === "physical" && product.stock === 0
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-black text-white hover:bg-gray-800"
+          }`}
         >
-          Add to Cart
+          {product.type === "physical" && product.stock === 0
+            ? "Out of Stock"
+            : "Add to Cart"}
         </button>
       </div>
     </div>
