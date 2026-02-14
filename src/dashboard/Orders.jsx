@@ -5,24 +5,52 @@ import { useToast } from "../context/ToastContext";
 
 /* ================= INVOICE PREVIEW ================= */
 const InvoicePreview = ({ order, onClose }) => {
+  if (!order) return null;
+
+  const downloadInvoice = async () => {
+    try {
+      const response = await api.get(
+        `/api/invoice/orders/${order._id}/invoice`,
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob([response.data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `invoice-${order._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Invoice download failed:", error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-lg p-6 rounded space-y-4 relative">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-lg p-6 rounded space-y-4 relative shadow-xl">
 
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-sm"
+          className="absolute top-2 right-3 text-lg"
         >
           ✕
         </button>
 
-        <div className="text-center">
+        <div className="text-center space-y-1">
           <h2 className="text-xl font-bold">INVOICE</h2>
           <p className="text-sm text-gray-500">
             Order ID: {order._id}
           </p>
           <p className="text-sm">
-            Date: {new Date(order.createdAt).toDateString()}
+            {new Date(order.createdAt).toDateString()}
           </p>
         </div>
 
@@ -41,8 +69,7 @@ const InvoicePreview = ({ order, onClose }) => {
           </>
         )}
 
-        <div>
-          <p className="font-medium mb-2">Items</p>
+        <div className="space-y-2">
           {order.items.map((item, i) => (
             <div
               key={i}
@@ -65,31 +92,25 @@ const InvoicePreview = ({ order, onClose }) => {
           <span>৳ {order.totalAmount}</span>
         </div>
 
-        <div className="text-sm">
-          <p>Payment Method: COD</p>
-          <p>
-            Payment Status:{" "}
-            <span className="capitalize font-medium">
-              {order.paymentStatus}
-            </span>
+        <div className="text-sm space-y-1">
+          <p>Payment Method: {order.paymentMethod}</p>
+          <p className="capitalize">
+            Status: {order.paymentStatus}
           </p>
         </div>
 
-        {/* ✅ Correct Invoice Route */}
-        <a
-          href={`${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center bg-black text-white py-2 rounded"
+        <button
+          onClick={downloadInvoice}
+          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition"
         >
           Download PDF Invoice
-        </a>
+        </button>
       </div>
     </div>
   );
 };
 
-/* ================= MAIN PAGE ================= */
+/* ================= MAIN ORDERS PAGE ================= */
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,86 +145,59 @@ const Orders = () => {
       </h1>
 
       {orders.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-300">
-          You have not placed any orders yet.
-        </p>
+        <p>No orders yet.</p>
       ) : (
         <div className="space-y-6">
           {orders.map((order) => (
             <div
               key={order._id}
-              className="border p-4 rounded-lg bg-white dark:bg-gray-800"
+              className="border p-4 rounded bg-white dark:bg-gray-800"
             >
-              {/* HEADER */}
-              <div className="flex justify-between mb-3 text-sm">
+              <div className="flex justify-between text-sm mb-2">
                 <span>
-                  Order ID:{" "}
-                  <span className="font-mono">
-                    {order._id.slice(-6)}
-                  </span>
+                  Order: {order._id.slice(-6)}
                 </span>
-
-                <span className="capitalize font-semibold">
+                <span className="capitalize font-medium">
                   {order.orderStatus}
                 </span>
               </div>
 
-              {/* ITEMS */}
-              <div className="space-y-2">
-                {order.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between text-sm"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {item.product?.title}
-                      </p>
-                      <p className="text-gray-500 dark:text-gray-300">
-                        {item.product?.type === "digital"
-                          ? "Digital Product"
-                          : "Physical Product"}{" "}
-                        × {item.quantity}
-                      </p>
-                    </div>
-
-                    {/* ✅ DIGITAL DOWNLOAD SAFE */}
-                    {item.product?.type === "digital" &&
-                      order.paymentStatus ===
-                        "paid" && (
-                        <a
-                          href={`${import.meta.env.VITE_API_URL}/download/${item.product?._id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          Download
-                        </a>
-                      )}
-                  </div>
-                ))}
-              </div>
-
-              {/* FOOTER */}
-              <div className="border-t mt-4 pt-3 flex justify-between text-sm items-center">
-                <span>
-                  Total: ৳ {order.totalAmount}
-                </span>
-
-                <div className="flex items-center gap-3">
+              {order.items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex justify-between text-sm"
+                >
                   <span>
-                    {new Date(
-                      order.createdAt
-                    ).toLocaleDateString()}
+                    {item.product?.title} ×{" "}
+                    {item.quantity}
                   </span>
 
-                  <button
-                    onClick={() =>
-                      setSelectedOrder(order)
-                    }
-                    className="underline"
-                  >
-                    View Invoice
-                  </button>
+                  {item.product?.type === "digital" &&
+                    order.paymentStatus ===
+                      "paid" && (
+                      <a
+                        href={`${import.meta.env.VITE_API_URL}/api/download/${item.product?._id}`}
+                        className="text-blue-600 underline"
+                      >
+                        Download
+                      </a>
+                    )}
                 </div>
+              ))}
+
+              <div className="border-t mt-3 pt-2 flex justify-between text-sm items-center">
+                <span>
+                  ৳ {order.totalAmount}
+                </span>
+
+                <button
+                  onClick={() =>
+                    setSelectedOrder(order)
+                  }
+                  className="underline"
+                >
+                  View Invoice
+                </button>
               </div>
             </div>
           ))}
