@@ -71,14 +71,39 @@ const InvoicePreview = ({ order, onClose }) => {
           </p>
         </div>
 
-        <a
-          href={`${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center bg-black text-white py-2 rounded"
-        >
-          Download PDF Invoice
-        </a>
+        <button
+  onClick={async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`,
+        {
+          headers: {
+            Authorization: `Bearer ${
+              JSON.parse(localStorage.getItem("userInfo"))?.token
+            }`,
+          },
+        }
+      );
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${order._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+    } catch (error) {
+      console.error("Invoice download failed:", error);
+    }
+  }}
+  className="block w-full text-center bg-black text-white py-2 rounded"
+>
+  Download PDF Invoice
+</button>
+
       </div>
     </div>
   );
