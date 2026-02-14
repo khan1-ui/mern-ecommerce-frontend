@@ -9,7 +9,8 @@ const Cart = () => {
     clearCart,
     hasPhysicalProduct,
   } = useCart();
-console.log("CART ITEMS:", cartItems);
+console.log("CART:", cartItems);
+
 
   const navigate = useNavigate();
 

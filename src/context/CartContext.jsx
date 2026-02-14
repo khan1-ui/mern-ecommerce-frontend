@@ -17,21 +17,8 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product) => {
+const addToCart = (product) => {
   setCart((prev) => {
-
-    const storeSlug = product.storeSlug;
-
-    // 🔥 Store isolation (SAFE)
-    if (
-      prev.length > 0 &&
-      prev[0].storeSlug &&
-      prev[0].storeSlug !== storeSlug
-    ) {
-      alert("You can only order from one store at a time.");
-      return prev;
-    }
-
     const existing = prev.find(
       (item) => item.productId === product._id
     );
@@ -53,11 +40,11 @@ export const CartProvider = ({ children }) => {
         type: product.type,
         price: product.price,
         image: product.images?.[0] || null,
-        storeSlug,
       },
     ];
   });
 };
+
 
   const removeFromCart = (productId) => {
     setCart((prev) =>
