@@ -111,12 +111,12 @@ const ProductDetails = () => {
             disabled={
               product.type === "physical" && product.stock === 0
             }
-            onClick={() =>
+            onClick={() =>{console.log("ADD CLICKED");
               addToCart({
                 ...product,
                 storeSlug,
               })
-            }
+            }}
             className={`px-6 py-2 rounded transition ${
               product.type === "physical" && product.stock === 0
                 ? "bg-gray-400 cursor-not-allowed"

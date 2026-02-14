@@ -20,6 +20,7 @@ export const CartProvider = ({ children }) => {
 
   // ================= ADD TO CART =================
   const addToCart = (product) => {
+    console.log("ADDING PRODUCT:", product);
     setCart((prev) => {
       // 🔒 Store isolation (SaaS safe)
       if (
