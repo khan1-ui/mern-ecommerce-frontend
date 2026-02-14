@@ -8,52 +8,54 @@ import {
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
+  const [cartItems, setCartItems] = useState(() => {
     const stored = localStorage.getItem("cart");
     return stored ? JSON.parse(stored) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
-const addToCart = (product) => {
-  setCart((prev) => {
-    const existing = prev.find(
-      (item) => item.productId === product._id
-    );
-
-    if (existing) {
-      return prev.map((item) =>
-        item.productId === product._id
-          ? { ...item, qty: item.qty + 1 }
-          : item
+  // ➕ ADD TO CART
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const existing = prev.find(
+        (item) => item.productId === product._id
       );
-    }
 
-    return [
-      ...prev,
-      {
-        productId: product._id,
-        title: product.title,
-        qty: 1,
-        type: product.type,
-        price: product.price,
-        image: product.images?.[0] || null,
-      },
-    ];
-  });
-};
+      if (existing) {
+        return prev.map((item) =>
+          item.productId === product._id
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        );
+      }
 
+      return [
+        ...prev,
+        {
+          productId: product._id,
+          title: product.title,
+          price: product.price,
+          image: product.images?.[0] || null,
+          type: product.type,
+          qty: 1,
+        },
+      ];
+    });
+  };
 
+  // ❌ REMOVE
   const removeFromCart = (productId) => {
-    setCart((prev) =>
+    setCartItems((prev) =>
       prev.filter((item) => item.productId !== productId)
     );
   };
 
+  // 🔁 UPDATE QTY
   const updateQty = (productId, qty) => {
-    setCart((prev) =>
+    setCartItems((prev) =>
       prev.map((item) =>
         item.productId === productId
           ? { ...item, qty: Math.max(1, qty) }
@@ -62,21 +64,16 @@ const addToCart = (product) => {
     );
   };
 
-  const clearCart = () => setCart([]);
-
-  const hasPhysicalProduct = cart.some(
-    (item) => item.type === "physical"
-  );
+  const clearCart = () => setCartItems([]);
 
   return (
     <CartContext.Provider
       value={{
-        cartItems: cart,
+        cartItems,
         addToCart,
         removeFromCart,
         updateQty,
         clearCart,
-        hasPhysicalProduct,
       }}
     >
       {children}

@@ -3,6 +3,7 @@ import { useCart } from "../context/CartContext";
 
 const Cart = () => {
   
+  
   const {
     cartItems,
     removeFromCart,
