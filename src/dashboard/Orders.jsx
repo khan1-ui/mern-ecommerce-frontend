@@ -48,13 +48,12 @@ const InvoicePreview = ({ order, onClose }) => {
         {/* HEADER */}
         <div className="flex justify-between items-center border-b pb-4">
           <div className="space-y-1">
-            {order.store?.logo && (
-              <img
+             <img
                 src={logo}
                 alt="Store Logo"
                 className="h-12"
               />
-            )}
+            
             <p className="text-sm text-gray-500">
               {order.store?.name}
             </p>
