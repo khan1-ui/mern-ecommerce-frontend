@@ -112,10 +112,7 @@ const ProductDetails = () => {
               product.type === "physical" && product.stock === 0
             }
             onClick={() =>{console.log("ADD CLICKED");
-              addToCart({
-                ...product,
-                storeSlug,
-              })
+              addToCart(product)
             }}
             className={`px-6 py-2 rounded transition ${
               product.type === "physical" && product.stock === 0

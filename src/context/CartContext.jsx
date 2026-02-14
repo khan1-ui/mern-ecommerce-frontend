@@ -20,10 +20,15 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product) => {
     setCart((prev) => {
 
+      const storeSlug =
+        typeof product.store === "object"
+          ? product.store.slug
+          : product.store;
+
       // 🔥 Store isolation
       if (
         prev.length > 0 &&
-        prev[0].storeSlug !== product.storeSlug
+        prev[0].storeSlug !== storeSlug
       ) {
         alert("You can only order from one store at a time.");
         return prev;
@@ -50,7 +55,7 @@ export const CartProvider = ({ children }) => {
           type: product.type,
           price: product.price,
           image: product.images?.[0] || null,
-          storeSlug: product.storeSlug,
+          storeSlug,
         },
       ];
     });
