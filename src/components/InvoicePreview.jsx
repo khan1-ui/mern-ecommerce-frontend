@@ -74,34 +74,37 @@ const InvoicePreview = ({ order, onClose }) => {
 
         <button
   onClick={async () => {
-    try {
-      const response = await api.get(
-        `/api/invoice/orders/${order._id}/invoice`,
-        {
-          responseType: "blob",
-        }
-      );
+  try {
+    console.log("Calling invoice route...");
 
-      const blob = new Blob([response.data], {
-        type: "application/pdf",
-      });
+    const response = await api.get(
+      `/api/invoice/orders/${order._id}/invoice`,
+      {
+        responseType: "blob",
+      }
+    );
 
-      const url = window.URL.createObjectURL(blob);
+    console.log("Response received", response);
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `invoice-${order._id}.pdf`;
+    const blob = new Blob([response.data], {
+      type: "application/pdf",
+    });
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    const url = window.URL.createObjectURL(blob);
 
-      window.URL.revokeObjectURL(url);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `invoice-${order._id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
-    } catch (error) {
-      console.error("Invoice download failed:", error);
-    }
-  }}
+  } catch (error) {
+    console.error("Invoice download failed:");
+    console.log(error.response);
+  }
+}}
+
   className="block w-full text-center bg-black text-white py-2 rounded"
 >
   Download PDF Invoice
