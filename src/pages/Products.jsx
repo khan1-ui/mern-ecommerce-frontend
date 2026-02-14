@@ -11,7 +11,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await api.get("/products");
+        const { data } = await api.get("/api/products");
         setProducts(data);
       } catch (err) {
         setError("Failed to load products");
