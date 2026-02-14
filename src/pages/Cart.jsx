@@ -36,41 +36,42 @@ const Cart = () => {
       </h1>
 
       {cartItems.length === 0 ? (
-        <p className="text-gray-500">
-          Your cart is empty.
-        </p>
-      ) : (
-        <>
-          <div className="space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item._id}
-                className="border p-4 rounded flex justify-between items-center"
-              >
-                <div>
-                  <h3 className="font-semibold">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {item.type === "digital"
-                      ? "Digital Product"
-                      : "Physical Product"}
-                  </p>
-                  <p className="text-sm">
-                    ৳ {item.price} × {item.qty}
-                  </p>
-                </div>
+            <p className="text-gray-500">
+              Your cart is empty.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-4">
+         {cartItems.map((item) => (
+          <div
+            key={item.product}
+            className="border p-4 rounded flex justify-between items-center"
+          >
+            <div>
+              <h3 className="font-semibold">
+                {item.name}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {item.type === "digital"
+                  ? "Digital Product"
+                  : "Physical Product"}
+              </p>
+              <p className="text-sm">
+                ৳ {item.price} × {item.qty}
+              </p>
+            </div>
 
-                <button
-                  onClick={() =>
-                    removeFromCart(item._id)
-                  }
-                  className="text-red-600 text-sm"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+            <button
+              onClick={() =>
+                removeFromCart(item.product)
+              }
+              className="text-red-600 text-sm"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+
           </div>
 
           <div className="border-t mt-6 pt-4 flex justify-between items-center">

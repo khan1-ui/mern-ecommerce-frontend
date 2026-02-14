@@ -18,45 +18,45 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
 
   // ➕ Add to Cart (SaaS Safe)
-  const addToCart = (product) => {
-    setCart((prev) => {
-      // 🔥 Check store isolation
-      if (
-        prev.length > 0 &&
-        prev[0].store !== product.store
-      ) {
-        alert(
-          "You can only order from one store at a time."
-        );
-        return prev;
-      }
+ const addToCart = (product) => {
+  setCart((prev) => {
+    // 🔥 Store isolation
+    if (
+      prev.length > 0 &&
+      prev[0].storeSlug !== product.storeSlug
+    ) {
+      alert("You can only order from one store at a time.");
+      return prev;
+    }
 
-        const existingIndex = prev.findIndex(
-          (item) => item.product === product._id
-        );
+    const existingIndex = prev.findIndex(
+      (item) => item.product === product._id
+    );
 
-      if (existingIndex) {
-        return prev.map((item) =>
-          item.product === product._id
-            ? { ...item, qty: item.qty + 1 }
-            : item
-        );
-      }
+    // ✅ FIXED
+    if (existingIndex !== -1) {
+      return prev.map((item) =>
+        item.product === product._id
+          ? { ...item, qty: item.qty + 1 }
+          : item
+      );
+    }
 
-      return [
-        ...prev,
-        {
-          product: product._id,
-          name: product.title,
-          qty: 1,
-          type: product.type,
-          price: product.price,
-          image: product.images?.[0] || null,
-          store: product.store, // 🔥 required
-        },
-      ];
-    });
-  };
+    return [
+      ...prev,
+      {
+        product: product._id,
+        name: product.title,
+        qty: 1,
+        type: product.type,
+        price: product.price,
+        image: product.images?.[0] || null,
+        store: product.store,
+        storeSlug: product.storeSlug, // 🔥 IMPORTANT
+      },
+    ];
+  });
+};
 
   const removeFromCart = (productId) => {
     setCart((prev) =>
