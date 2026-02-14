@@ -18,9 +18,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+ useEffect(() => {
+  const userInfo = localStorage.getItem("userInfo");
+
+  if (!userInfo) {
+    setLoading(false);
+    return;
+  }
+
+  fetchCart();
+}, []);
+
 
   const addToCart = async (productId) => {
     const { data } = await api.post("/api/cart", {
