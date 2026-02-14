@@ -72,41 +72,43 @@ const InvoicePreview = ({ order, onClose }) => {
           </p>
         </div>
 
-        <button
+<button
   onClick={async () => {
-  try {
-    const token = JSON.parse(
-      localStorage.getItem("userInfo")
-    )?.token;
+    try {
+      const token = JSON.parse(
+        localStorage.getItem("userInfo")
+      )?.token;
 
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/invoice/orders/${order._id}/invoice`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await fetch(
+        `https://mern-ecommerce-backend-1hod.onrender.com/api/invoice/orders/${order._id}/invoice`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `invoice-${order._id}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${order._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
 
-  } catch (err) {
-    console.log(err);
-  }
-}}
+      window.URL.revokeObjectURL(url);
 
+    } catch (err) {
+      console.log(err);
+    }
+  }}
   className="block w-full text-center bg-black text-white py-2 rounded"
 >
   Download PDF Invoice
 </button>
+
 
       </div>
     </div>
