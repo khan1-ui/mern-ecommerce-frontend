@@ -26,7 +26,7 @@ export const CartProvider = ({ children }) => {
       setLoading(false);
       return;
     }
-
+console.log("Cart useEffect triggered");
     fetchCart();
   }, []);
 
