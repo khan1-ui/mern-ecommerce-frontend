@@ -13,25 +13,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // ================= LOGIN =================
-  const login = async (email, password) => {
-    try {
-      const { data } = await api.post("/api/auth/login", {
-        email,
+const login = async (emailOrData, password) => {
+  try {
+    let data;
+
+    // 🔥 If first param is object → direct set (register case)
+    if (typeof emailOrData === "object") {
+      data = emailOrData;
+    } else {
+      // 🔥 Normal login case
+      const response = await api.post("/api/auth/login", {
+        email: emailOrData,
         password,
       });
-
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify(data)
-      );
-
-      setUser(data);
-
-      return data;
-    } catch (error) {
-      throw error;
+      data = response.data;
     }
-  };
+
+    localStorage.setItem("userInfo", JSON.stringify(data));
+    setUser(data);
+
+    return data;
+
+  } catch (error) {
+    throw error;
+  }
+};
+
 
   // ================= LOGOUT =================
   const logout = () => {
