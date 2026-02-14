@@ -23,7 +23,7 @@ export default function StoreSettings() {
     const fetchStore = async () => {
       try {
         const { data } = await api.get(
-          `/store/${user.store}`
+          `/api/store-owner/store/${user.store}`
         );
 
         setForm({
