@@ -17,17 +17,16 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // ➕ ADD TO CART
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existing = prev.find(
-        (item) => item.productId === product._id
+        (item) => item.product === product._id
       );
 
       if (existing) {
         return prev.map((item) =>
-          item.productId === product._id
-            ? { ...item, qty: item.qty + 1 }
+          item.product === product._id
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
@@ -35,30 +34,27 @@ export const CartProvider = ({ children }) => {
       return [
         ...prev,
         {
-          productId: product._id,
-          title: product.title,
+          product: product._id,
+          store: product.store,
+          name: product.title,
           price: product.price,
-          image: product.images?.[0] || null,
-          type: product.type,
-          qty: 1,
+          quantity: 1,
         },
       ];
     });
   };
 
-  // ❌ REMOVE
   const removeFromCart = (productId) => {
     setCartItems((prev) =>
-      prev.filter((item) => item.productId !== productId)
+      prev.filter((item) => item.product !== productId)
     );
   };
 
-  // 🔁 UPDATE QTY
   const updateQty = (productId, qty) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        item.productId === productId
-          ? { ...item, qty: Math.max(1, qty) }
+        item.product === productId
+          ? { ...item, quantity: Math.max(1, qty) }
           : item
       )
     );

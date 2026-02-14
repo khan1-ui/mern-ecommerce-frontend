@@ -5,12 +5,13 @@ const Cart = () => {
     cartItems,
     removeFromCart,
     clearCart,
+    updateQty,
   } = useCart();
 
   console.log("CART:", cartItems);
 
   const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.qty,
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
@@ -29,33 +30,61 @@ const Cart = () => {
           <div className="space-y-4">
             {cartItems.map((item) => (
               <div
-                key={item.productId}
+                key={item.product}
                 className="border p-4 rounded flex justify-between items-center"
               >
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold">
-                    {item.title}
+                    {item.name}
                   </h3>
 
-                  <p className="text-sm">
-                    ৳ {item.price} × {item.qty}
+                  <p className="text-sm text-gray-500">
+                    ৳ {item.price}
                   </p>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={() =>
+                        updateQty(item.product, item.quantity - 1)
+                      }
+                      className="px-2 border rounded"
+                    >
+                      -
+                    </button>
+
+                    <span>{item.quantity}</span>
+
+                    <button
+                      onClick={() =>
+                        updateQty(item.product, item.quantity + 1)
+                      }
+                      className="px-2 border rounded"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() =>
-                    removeFromCart(item.productId)
-                  }
-                  className="text-red-600 text-sm"
-                >
-                  Remove
-                </button>
+                <div className="text-right">
+                  <p className="font-semibold">
+                    ৳ {item.price * item.quantity}
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      removeFromCart(item.product)
+                    }
+                    className="text-red-600 text-sm mt-2"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>
 
           <div className="border-t mt-6 pt-4 flex justify-between items-center">
-            <p className="font-semibold">
+            <p className="text-lg font-semibold">
               Total: ৳ {total}
             </p>
 
