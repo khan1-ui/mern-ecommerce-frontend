@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {CartProvider} from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 
 const Checkout = () => {
-  const { cartItems, clearCart } = CartProvider();
+  const { cart, clearCart } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const cartItems = cart?.items || [];
 
   const [address, setAddress] = useState({
     name: "",
@@ -17,11 +19,12 @@ const Checkout = () => {
   });
 
   const hasPhysicalProduct = cartItems.some(
-    (item) => item.type === "physical"
+    (item) => item.product?.type === "physical"
   );
 
   const totalAmount = cartItems.reduce(
-    (sum, item) => sum + item.price * item.qty,
+    (sum, item) =>
+      sum + (item.product?.price || 0) * item.quantity,
     0
   );
 
@@ -40,13 +43,10 @@ const Checkout = () => {
     }
 
     try {
-      await api.post("/orders", {
-        store: cartItems[0].store, // 🔥 SaaS isolation
+      await api.post("/api/orders", {
         items: cartItems.map((item) => ({
-          product: item.product,
-          name: item.name,
-          price: item.price,
-          quantity: item.qty,
+          product: item.product._id,
+          quantity: item.quantity,
         })),
         shippingAddress: hasPhysicalProduct ? address : null,
       });
@@ -66,21 +66,21 @@ const Checkout = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        Checkout
-      </h1>
+      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
       {/* ORDER SUMMARY */}
       <div className="border p-4 rounded mb-6">
         {cartItems.map((item) => (
           <div
-            key={item.product}
+            key={item.product._id}
             className="flex justify-between text-sm mb-2"
           >
             <span>
-              {item.name} × {item.qty}
+              {item.product.title} × {item.quantity}
             </span>
-            <span>৳ {item.price * item.qty}</span>
+            <span>
+              ৳ {item.product.price * item.quantity}
+            </span>
           </div>
         ))}
 
