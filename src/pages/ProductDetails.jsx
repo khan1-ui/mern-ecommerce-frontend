@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api, { getImageUrl } from "../services/api";
 import { useCart } from "../context/CartContext";
 import Loader from "../components/Loader";
 
 const ProductDetails = () => {
   const { storeSlug, slug } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -20,7 +22,7 @@ const ProductDetails = () => {
         setError("");
 
         const { data } = await api.get(
-          `/api/products/store/${storeSlug}/product/${slug}`
+          `/products/store/${storeSlug}/product/${slug}`
         );
 
         setProduct(data);
@@ -38,29 +40,28 @@ const ProductDetails = () => {
   }, [storeSlug, slug]);
 
   if (loading) return <Loader fullScreen />;
-
-  if (error)
-    return (
-      <div className="p-10 text-center text-red-500">
-        {error}
-      </div>
-    );
-
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
   if (!product) return null;
 
   const images =
     product.images?.length > 0
       ? product.images.map((img) =>
-          img.startsWith("http")
-            ? img
-            : getImageUrl(img)
+          img.startsWith("http") ? img : getImageUrl(img)
         )
       : ["/placeholder.png"];
 
+  const handleAddToCart = async () => {
+    await addToCart(product._id, quantity);
+  };
+
+  const handleBuyNow = async () => {
+    await addToCart(product._id, quantity);
+    navigate("/checkout");
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-10">
-
-      {/* IMAGE GALLERY */}
+      {/* IMAGE SECTION */}
       <div className="flex gap-4">
         <div className="flex md:flex-col gap-2">
           {images.map((img, index) => (
@@ -82,16 +83,14 @@ const ProductDetails = () => {
           <img
             src={images[activeImage]}
             alt={product.title}
-            className="w-full h-[380px] object-cover transition-transform duration-300 hover:scale-105"
+            className="w-full h-[380px] object-cover"
           />
         </div>
       </div>
 
-      {/* PRODUCT DETAILS */}
+      {/* DETAILS SECTION */}
       <div>
-        <h1 className="text-2xl font-bold mb-2">
-          {product.title}
-        </h1>
+        <h1 className="text-2xl font-bold mb-2">{product.title}</h1>
 
         <p className="text-gray-600 dark:text-gray-400 mb-4">
           {product.description}
@@ -107,12 +106,36 @@ const ProductDetails = () => {
           </p>
         )}
 
-        <button
+        {/* Quantity Selector */}
+        {product.type === "physical" && product.stock > 0 && (
+          <div className="flex items-center gap-3 mb-4">
+            <span>Qty:</span>
+            <button
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="border px-3"
+            >
+              -
+            </button>
+            <span>{quantity}</span>
+            <button
+              onClick={() =>
+                setQuantity((prev) =>
+                  Math.min(product.stock, prev + 1)
+                )
+              }
+              className="border px-3"
+            >
+              +
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-4">
+          <button
             disabled={
               product.type === "physical" && product.stock === 0
             }
-           onClick={() => addToCart(product)}
-
+            onClick={handleAddToCart}
             className={`px-6 py-2 rounded transition ${
               product.type === "physical" && product.stock === 0
                 ? "bg-gray-400 cursor-not-allowed"
@@ -124,6 +147,16 @@ const ProductDetails = () => {
               : "Add to Cart"}
           </button>
 
+          <button
+            disabled={
+              product.type === "physical" && product.stock === 0
+            }
+            onClick={handleBuyNow}
+            className="px-6 py-2 rounded border hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Buy Now
+          </button>
+        </div>
       </div>
     </div>
   );
