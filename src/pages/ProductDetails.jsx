@@ -22,7 +22,7 @@ const ProductDetails = () => {
         setError("");
 
         const { data } = await api.get(
-          `/products/store/${storeSlug}/product/${slug}`
+          `/api/products/store/${storeSlug}/product/${slug}`
         );
 
         setProduct(data);
