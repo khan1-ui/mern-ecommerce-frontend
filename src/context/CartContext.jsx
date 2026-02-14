@@ -7,6 +7,9 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   console.log(cart);
+  console.log(cart.items[0]);
+console.log(cart.items[0].product);
+
 
   const fetchCart = async () => {
     try {
