@@ -9,7 +9,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const { data } = await api.get("/cart");
+      const { data } = await api.get("/api/cart");
       setCart(data);
     } catch (error) {
       console.error("Cart fetch error", error);
@@ -23,7 +23,7 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   const addToCart = async (productId) => {
-    const { data } = await api.post("/cart", {
+    const { data } = await api.post("/api/cart", {
       productId,
       quantity: 1,
     });
@@ -31,7 +31,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = async (productId) => {
-    const { data } = await api.delete(`/cart/${productId}`);
+    const { data } = await api.delete(`/api/cart/${productId}`);
     setCart(data);
   };
 
