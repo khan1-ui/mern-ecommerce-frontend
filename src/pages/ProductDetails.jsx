@@ -113,8 +113,8 @@ const ProductDetails = () => {
             }
             onClick={() =>
               addToCart({
-                ...product,
-                storeSlug,
+                product,
+                
               })
             }
 
