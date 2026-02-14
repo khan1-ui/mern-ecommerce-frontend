@@ -18,48 +18,46 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
 
   const addToCart = (product) => {
-    setCart((prev) => {
+  setCart((prev) => {
 
-      const storeSlug =
-        typeof product.store === "object"
-          ? product.store.slug
-          : product.store;
+    const storeSlug = product.storeSlug;
 
-      // 🔥 Store isolation
-      if (
-        prev.length > 0 &&
-        prev[0].storeSlug !== storeSlug
-      ) {
-        alert("You can only order from one store at a time.");
-        return prev;
-      }
+    // 🔥 Store isolation (SAFE)
+    if (
+      prev.length > 0 &&
+      prev[0].storeSlug &&
+      prev[0].storeSlug !== storeSlug
+    ) {
+      alert("You can only order from one store at a time.");
+      return prev;
+    }
 
-      const existing = prev.find(
-        (item) => item.productId === product._id
+    const existing = prev.find(
+      (item) => item.productId === product._id
+    );
+
+    if (existing) {
+      return prev.map((item) =>
+        item.productId === product._id
+          ? { ...item, qty: item.qty + 1 }
+          : item
       );
+    }
 
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === product._id
-            ? { ...item, qty: item.qty + 1 }
-            : item
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          productId: product._id,
-          title: product.title,
-          qty: 1,
-          type: product.type,
-          price: product.price,
-          image: product.images?.[0] || null,
-          storeSlug,
-        },
-      ];
-    });
-  };
+    return [
+      ...prev,
+      {
+        productId: product._id,
+        title: product.title,
+        qty: 1,
+        type: product.type,
+        price: product.price,
+        image: product.images?.[0] || null,
+        storeSlug,
+      },
+    ];
+  });
+};
 
   const removeFromCart = (productId) => {
     setCart((prev) =>
