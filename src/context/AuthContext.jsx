@@ -86,6 +86,7 @@ const login = async (emailOrData, password) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         logout,
         loading,
