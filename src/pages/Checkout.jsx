@@ -38,20 +38,33 @@ const Checkout = () => {
     0
   );
 
+  /* ================= VALIDATION ================= */
+  const validateAddress = () => {
+    const { name, phone, address: addr, city } = address;
+
+    if (!name.trim() || !phone.trim() || !addr.trim() || !city.trim()) {
+      showToast("Delivery address required", "error");
+      return false;
+    }
+
+    if (phone.length < 10) {
+      showToast("Invalid phone number", "error");
+      return false;
+    }
+
+    return true;
+  };
+
   /* ================= PLACE ORDER ================= */
   const placeOrder = async () => {
+    if (placing) return;
+
     if (cartItems.length === 0) {
       showToast("Cart is empty", "error");
       return;
     }
 
-    if (hasPhysicalProduct) {
-      const { name, phone, address: addr, city } = address;
-      if (!name || !phone || !addr || !city) {
-        showToast("Delivery address required", "error");
-        return;
-      }
-    }
+    if (hasPhysicalProduct && !validateAddress()) return;
 
     try {
       setPlacing(true);
@@ -68,25 +81,33 @@ const Checkout = () => {
 
       const orderId = data._id;
 
-      /* 2️⃣ Stripe Payment */
+      /* 2️⃣ Stripe Payment Flow */
       if (paymentMethod === "stripe") {
         const response = await api.post(
           "/api/payment/stripe/create-session",
           { orderId }
         );
 
+        if (!response?.data?.url) {
+          throw new Error("Stripe session failed");
+        }
+
+        // ⚠️ Do NOT clear cart here (webhook will handle)
         window.location.href = response.data.url;
         return;
       }
 
-      /* 3️⃣ COD */
+      /* 3️⃣ COD Flow */
+      await clearCart();
       showToast("Order placed successfully 🎉", "success");
-      clearCart();
       navigate("/dashboard/orders");
 
     } catch (error) {
+      console.error("CHECKOUT ERROR:", error);
+
       showToast(
-        error?.response?.data?.message || "Order failed",
+        error?.response?.data?.message ||
+          "Something went wrong",
         "error"
       );
     } finally {
@@ -147,41 +168,17 @@ const Checkout = () => {
               Delivery Address
             </h2>
 
-            <input
-              className="border p-3 w-full rounded-lg"
-              placeholder="Full Name"
-              value={address.name}
-              onChange={(e) =>
-                setAddress({ ...address, name: e.target.value })
-              }
-            />
-
-            <input
-              className="border p-3 w-full rounded-lg"
-              placeholder="Phone Number"
-              value={address.phone}
-              onChange={(e) =>
-                setAddress({ ...address, phone: e.target.value })
-              }
-            />
-
-            <input
-              className="border p-3 w-full rounded-lg"
-              placeholder="Address"
-              value={address.address}
-              onChange={(e) =>
-                setAddress({ ...address, address: e.target.value })
-              }
-            />
-
-            <input
-              className="border p-3 w-full rounded-lg"
-              placeholder="City"
-              value={address.city}
-              onChange={(e) =>
-                setAddress({ ...address, city: e.target.value })
-              }
-            />
+            {["name", "phone", "address", "city"].map((field) => (
+              <input
+                key={field}
+                className="border p-3 w-full rounded-lg"
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={address[field]}
+                onChange={(e) =>
+                  setAddress({ ...address, [field]: e.target.value })
+                }
+              />
+            ))}
           </div>
         )}
 
@@ -227,7 +224,7 @@ const Checkout = () => {
           {placing
             ? "Processing..."
             : paymentMethod === "stripe"
-            ? "Proceed to Payment"
+            ? "Proceed to Secure Payment"
             : "Place Order"}
         </button>
 
