@@ -13,37 +13,48 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   const submitHandler = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const { data } = await api.put(
-        "/api/auth/profile",
-        {
-          name,
-          password: password || undefined,
-        }
-      );
+    const payload = { name };
 
-      // ✅ Update local storage + context
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      setUser(data);
-
-      showToast("Profile updated successfully", "success");
-
-      setPassword("");
-
-    } catch (err) {
-      showToast(
-        err?.response?.data?.message ||
-          "Profile update failed",
-        "error"
-      );
-    } finally {
-      setLoading(false);
+    if (password.trim()) {
+      if (password.length < 6) {
+        showToast(
+          "Password must be at least 6 characters",
+          "error"
+        );
+        return;
+      }
+      payload.password = password;
     }
-  };
+
+    const { data } = await api.put(
+      "/api/auth/profile",
+      payload
+    );
+
+    localStorage.setItem("userInfo", JSON.stringify(data));
+    setUser(data);
+
+    showToast("Profile updated successfully", "success");
+    setPassword("");
+
+  } catch (err) {
+    console.log("PROFILE ERROR:", err?.response);
+
+    showToast(
+      err?.response?.data?.message ||
+        "Something went wrong",
+      "error"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-xl mx-auto p-6">
