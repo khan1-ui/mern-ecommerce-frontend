@@ -12,6 +12,7 @@ const Checkout = () => {
   const cartItems = cart?.items || [];
 
   const [placing, setPlacing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   const [address, setAddress] = useState({
     name: "",
@@ -20,7 +21,7 @@ const Checkout = () => {
     city: "",
   });
 
-  // Redirect if cart empty
+  /* ================= Redirect if cart empty ================= */
   useEffect(() => {
     if (!loading && cartItems.length === 0) {
       navigate("/cart");
@@ -37,6 +38,7 @@ const Checkout = () => {
     0
   );
 
+  /* ================= PLACE ORDER ================= */
   const placeOrder = async () => {
     if (cartItems.length === 0) {
       showToast("Cart is empty", "error");
@@ -54,16 +56,31 @@ const Checkout = () => {
     try {
       setPlacing(true);
 
-      await api.post("/api/orders", {
+      /* 1️⃣ Create Order */
+      const { data } = await api.post("/api/orders", {
         items: cartItems.map((item) => ({
           product: item.product._id,
           quantity: item.quantity,
         })),
         shippingAddress: hasPhysicalProduct ? address : null,
+        paymentMethod,
       });
 
-      showToast("Order placed successfully 🎉", "success");
+      const orderId = data._id;
 
+      /* 2️⃣ Stripe Payment */
+      if (paymentMethod === "stripe") {
+        const response = await api.post(
+          "/api/payment/stripe/create-session",
+          { orderId }
+        );
+
+        window.location.href = response.data.url;
+        return;
+      }
+
+      /* 3️⃣ COD */
+      showToast("Order placed successfully 🎉", "success");
       clearCart();
       navigate("/dashboard/orders");
 
@@ -89,7 +106,7 @@ const Checkout = () => {
     <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-10">
 
       {/* ================= ORDER SUMMARY ================= */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 space-y-4">
         <h2 className="text-xl font-semibold border-b pb-3">
           Order Summary
         </h2>
@@ -120,17 +137,18 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* ================= SHIPPING + PAYMENT ================= */}
+      {/* ================= RIGHT SECTION ================= */}
       <div className="space-y-6">
 
+        {/* DELIVERY ADDRESS */}
         {hasPhysicalProduct && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 space-y-4">
             <h2 className="text-xl font-semibold border-b pb-3">
               Delivery Address
             </h2>
 
             <input
-              className="border p-3 w-full rounded"
+              className="border p-3 w-full rounded-lg"
               placeholder="Full Name"
               value={address.name}
               onChange={(e) =>
@@ -139,7 +157,7 @@ const Checkout = () => {
             />
 
             <input
-              className="border p-3 w-full rounded"
+              className="border p-3 w-full rounded-lg"
               placeholder="Phone Number"
               value={address.phone}
               onChange={(e) =>
@@ -148,7 +166,7 @@ const Checkout = () => {
             />
 
             <input
-              className="border p-3 w-full rounded"
+              className="border p-3 w-full rounded-lg"
               placeholder="Address"
               value={address.address}
               onChange={(e) =>
@@ -157,7 +175,7 @@ const Checkout = () => {
             />
 
             <input
-              className="border p-3 w-full rounded"
+              className="border p-3 w-full rounded-lg"
               placeholder="City"
               value={address.city}
               onChange={(e) =>
@@ -167,13 +185,50 @@ const Checkout = () => {
           </div>
         )}
 
+        {/* PAYMENT METHOD */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 space-y-4">
+          <h2 className="text-xl font-semibold border-b pb-3">
+            Payment Method
+          </h2>
+
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="cod"
+                checked={paymentMethod === "cod"}
+                onChange={(e) =>
+                  setPaymentMethod(e.target.value)
+                }
+              />
+              Cash on Delivery
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="stripe"
+                checked={paymentMethod === "stripe"}
+                onChange={(e) =>
+                  setPaymentMethod(e.target.value)
+                }
+              />
+              Pay with Card (Stripe)
+            </label>
+          </div>
+        </div>
+
         {/* PLACE ORDER BUTTON */}
         <button
           onClick={placeOrder}
           disabled={placing}
-          className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition font-medium disabled:opacity-50"
+          className="w-full bg-black text-white py-3 rounded-2xl hover:bg-gray-800 transition font-semibold disabled:opacity-50"
         >
-          {placing ? "Placing Order..." : "Place Order"}
+          {placing
+            ? "Processing..."
+            : paymentMethod === "stripe"
+            ? "Proceed to Payment"
+            : "Place Order"}
         </button>
 
       </div>

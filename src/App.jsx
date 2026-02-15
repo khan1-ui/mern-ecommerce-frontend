@@ -18,6 +18,7 @@ import StoreSettings from "./admin/StoreSettings";
 // User Dashboard
 import DashboardHome from "./dashboard/DashboardHome";
 import Orders from "./dashboard/Orders";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import Downloads from "./dashboard/Downloads";
 import Profile from "./dashboard/Profile";
 
@@ -53,6 +54,7 @@ function App() {
           />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/store/:slug" element={<StorePage />} />
