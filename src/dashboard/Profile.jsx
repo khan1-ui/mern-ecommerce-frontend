@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api from "../services/api";
@@ -6,6 +7,8 @@ import api from "../services/api";
 const Profile = () => {
   const { user, setUser } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,6 +73,9 @@ const Profile = () => {
         "Profile updated successfully 🎉",
         "success"
       );
+      setTimeout(() => {
+      navigate("/dashboard");
+    }, 800);
 
       setPassword("");
       setConfirmPassword("");
