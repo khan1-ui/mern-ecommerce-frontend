@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, loading } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   const cartItems = cart?.items || [];
+
+  const [placing, setPlacing] = useState(false);
 
   const [address, setAddress] = useState({
     name: "",
@@ -17,6 +19,13 @@ const Checkout = () => {
     address: "",
     city: "",
   });
+
+  // Redirect if cart empty
+  useEffect(() => {
+    if (!loading && cartItems.length === 0) {
+      navigate("/cart");
+    }
+  }, [cartItems, loading, navigate]);
 
   const hasPhysicalProduct = cartItems.some(
     (item) => item.product?.type === "physical"
@@ -43,6 +52,8 @@ const Checkout = () => {
     }
 
     try {
+      setPlacing(true);
+
       await api.post("/api/orders", {
         items: cartItems.map((item) => ({
           product: item.product._id,
@@ -61,85 +72,111 @@ const Checkout = () => {
         error?.response?.data?.message || "Order failed",
         "error"
       );
+    } finally {
+      setPlacing(false);
     }
   };
 
-  return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+  if (loading) {
+    return (
+      <div className="text-center mt-20 text-lg">
+        Loading checkout...
+      </div>
+    );
+  }
 
-      {/* ORDER SUMMARY */}
-      <div className="border p-4 rounded mb-6">
+  return (
+    <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-10">
+
+      {/* ================= ORDER SUMMARY ================= */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-3">
+          Order Summary
+        </h2>
+
         {cartItems.map((item) => (
           <div
             key={item.product._id}
-            className="flex justify-between text-sm mb-2"
+            className="flex justify-between text-sm"
           >
-            <span>
-              {item.product.title} × {item.quantity}
-            </span>
+            <div>
+              <p className="font-medium">
+                {item.product.title}
+              </p>
+              <p className="text-gray-500 dark:text-gray-300">
+                Qty: {item.quantity}
+              </p>
+            </div>
+
             <span>
               ৳ {item.product.price * item.quantity}
             </span>
           </div>
         ))}
 
-        <div className="border-t mt-3 pt-2 font-semibold">
-          Total: ৳ {totalAmount}
+        <div className="border-t pt-4 flex justify-between font-bold text-lg">
+          <span>Total</span>
+          <span>৳ {totalAmount}</span>
         </div>
       </div>
 
-      {/* DELIVERY ADDRESS */}
-      {hasPhysicalProduct && (
-        <div className="border p-4 rounded mb-6">
-          <h2 className="font-semibold mb-3">
-            Delivery Address
-          </h2>
+      {/* ================= SHIPPING + PAYMENT ================= */}
+      <div className="space-y-6">
 
-          <input
-            className="border p-2 w-full mb-3"
-            placeholder="Full Name"
-            value={address.name}
-            onChange={(e) =>
-              setAddress({ ...address, name: e.target.value })
-            }
-          />
+        {hasPhysicalProduct && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+            <h2 className="text-xl font-semibold border-b pb-3">
+              Delivery Address
+            </h2>
 
-          <input
-            className="border p-2 w-full mb-3"
-            placeholder="Phone Number"
-            value={address.phone}
-            onChange={(e) =>
-              setAddress({ ...address, phone: e.target.value })
-            }
-          />
+            <input
+              className="border p-3 w-full rounded"
+              placeholder="Full Name"
+              value={address.name}
+              onChange={(e) =>
+                setAddress({ ...address, name: e.target.value })
+              }
+            />
 
-          <input
-            className="border p-2 w-full mb-3"
-            placeholder="Address"
-            value={address.address}
-            onChange={(e) =>
-              setAddress({ ...address, address: e.target.value })
-            }
-          />
+            <input
+              className="border p-3 w-full rounded"
+              placeholder="Phone Number"
+              value={address.phone}
+              onChange={(e) =>
+                setAddress({ ...address, phone: e.target.value })
+              }
+            />
 
-          <input
-            className="border p-2 w-full"
-            placeholder="City"
-            value={address.city}
-            onChange={(e) =>
-              setAddress({ ...address, city: e.target.value })
-            }
-          />
-        </div>
-      )}
+            <input
+              className="border p-3 w-full rounded"
+              placeholder="Address"
+              value={address.address}
+              onChange={(e) =>
+                setAddress({ ...address, address: e.target.value })
+              }
+            />
 
-      <button
-        onClick={placeOrder}
-        className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
-      >
-        Place Order
-      </button>
+            <input
+              className="border p-3 w-full rounded"
+              placeholder="City"
+              value={address.city}
+              onChange={(e) =>
+                setAddress({ ...address, city: e.target.value })
+              }
+            />
+          </div>
+        )}
+
+        {/* PLACE ORDER BUTTON */}
+        <button
+          onClick={placeOrder}
+          disabled={placing}
+          className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition font-medium disabled:opacity-50"
+        >
+          {placing ? "Placing Order..." : "Place Order"}
+        </button>
+
+      </div>
     </div>
   );
 };

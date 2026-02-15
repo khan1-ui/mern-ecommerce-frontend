@@ -14,7 +14,9 @@ const ProductDetails = () => {
   const [error, setError] = useState("");
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
 
+  /* ================= FETCH PRODUCT ================= */
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -26,6 +28,9 @@ const ProductDetails = () => {
         );
 
         setProduct(data);
+        setQuantity(1);
+        setActiveImage(0);
+
       } catch (err) {
         console.error("PRODUCT DETAIL ERROR:", err);
         setError("Product not found");
@@ -40,9 +45,15 @@ const ProductDetails = () => {
   }, [storeSlug, slug]);
 
   if (loading) return <Loader fullScreen />;
-  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+  if (error)
+    return (
+      <div className="p-10 text-center text-red-500 text-lg">
+        {error}
+      </div>
+    );
   if (!product) return null;
 
+  /* ================= IMAGES ================= */
   const images =
     product.images?.length > 0
       ? product.images.map((img) =>
@@ -50,113 +61,153 @@ const ProductDetails = () => {
         )
       : ["/placeholder.png"];
 
+  /* ================= HANDLERS ================= */
   const handleAddToCart = async () => {
-    await addToCart(product._id, quantity);
+    try {
+      setAdding(true);
+      await addToCart(product._id, quantity);
+      navigate("/cart");
+    } catch (err) {
+      console.error("Add to cart failed");
+    } finally {
+      setAdding(false);
+    }
   };
 
   const handleBuyNow = async () => {
-    await addToCart(product._id, quantity);
-    navigate("/checkout");
+    try {
+      setAdding(true);
+      await addToCart(product._id, quantity);
+      navigate("/checkout");
+    } catch (err) {
+      console.error("Buy now failed");
+    } finally {
+      setAdding(false);
+    }
   };
 
+  /* ================= UI ================= */
   return (
-    <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-10">
-      {/* IMAGE SECTION */}
+    <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-12">
+
+      {/* ================= IMAGE SECTION ================= */}
       <div className="flex gap-4">
-        <div className="flex md:flex-col gap-2">
+        <div className="flex md:flex-col gap-3">
           {images.map((img, index) => (
             <img
               key={index}
               src={img}
               alt="thumbnail"
               onClick={() => setActiveImage(index)}
-              className={`w-16 h-16 object-cover rounded cursor-pointer border ${
+              className={`w-16 h-16 object-cover rounded-lg cursor-pointer border transition ${
                 activeImage === index
                   ? "border-black dark:border-white"
-                  : "opacity-70 hover:opacity-100"
+                  : "opacity-60 hover:opacity-100"
               }`}
             />
           ))}
         </div>
 
-        <div className="flex-1 border rounded overflow-hidden bg-white dark:bg-gray-900">
+        <div className="flex-1 rounded-xl overflow-hidden border bg-white dark:bg-gray-900">
           <img
             src={images[activeImage]}
             alt={product.title}
-            className="w-full h-[380px] object-cover"
+            className="w-full h-[420px] object-cover transition-transform duration-300 hover:scale-105"
           />
         </div>
       </div>
 
-      {/* DETAILS SECTION */}
-      <div>
-        <h1 className="text-2xl font-bold mb-2">{product.title}</h1>
+      {/* ================= DETAILS SECTION ================= */}
+      <div className="space-y-5">
 
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+        <h1 className="text-3xl font-bold">
+          {product.title}
+        </h1>
+
+        <p className="text-gray-600 dark:text-gray-400">
           {product.description}
         </p>
 
-        <p className="text-xl font-semibold mb-3">
+        <div className="text-2xl font-semibold">
           ৳ {product.price}
-        </p>
+        </div>
 
         {product.type === "physical" && (
-          <p className="text-sm mb-4">
+          <p className="text-sm text-gray-500">
             In stock: {product.stock}
           </p>
         )}
 
-        {/* Quantity Selector */}
+        {/* ================= QUANTITY ================= */}
         {product.type === "physical" && product.stock > 0 && (
-          <div className="flex items-center gap-3 mb-4">
-            <span>Qty:</span>
+          <div className="flex items-center gap-4 mt-4">
+            <span className="font-medium">Qty:</span>
+
             <button
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-              className="border px-3"
+              onClick={() =>
+                setQuantity((prev) => Math.max(1, prev - 1))
+              }
+              className="border px-4 py-1 rounded"
             >
               -
             </button>
-            <span>{quantity}</span>
+
+            <span className="font-semibold text-lg">
+              {quantity}
+            </span>
+
             <button
               onClick={() =>
                 setQuantity((prev) =>
                   Math.min(product.stock, prev + 1)
                 )
               }
-              className="border px-3"
+              className="border px-4 py-1 rounded"
             >
               +
             </button>
           </div>
         )}
 
-        <div className="flex gap-4">
+        {/* ================= BUTTONS ================= */}
+        <div className="flex gap-4 pt-4">
+
           <button
             disabled={
-              product.type === "physical" && product.stock === 0
+              adding ||
+              (product.type === "physical" &&
+                product.stock === 0)
             }
             onClick={handleAddToCart}
-            className={`px-6 py-2 rounded transition ${
-              product.type === "physical" && product.stock === 0
+            className={`px-8 py-3 rounded-xl font-medium transition ${
+              product.type === "physical" &&
+              product.stock === 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-black text-white hover:bg-gray-800"
             }`}
           >
-            {product.type === "physical" && product.stock === 0
+            {adding
+              ? "Adding..."
+              : product.type === "physical" &&
+                product.stock === 0
               ? "Out of Stock"
               : "Add to Cart"}
           </button>
 
           <button
             disabled={
-              product.type === "physical" && product.stock === 0
+              adding ||
+              (product.type === "physical" &&
+                product.stock === 0)
             }
             onClick={handleBuyNow}
-            className="px-6 py-2 rounded border hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="px-8 py-3 rounded-xl border font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           >
             Buy Now
           </button>
+
         </div>
+
       </div>
     </div>
   );
